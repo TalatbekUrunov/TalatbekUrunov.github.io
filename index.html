@@ -2,87 +2,102 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root{
-    --bg:#080b10; --bg2:#0a0f16; --panel:#0f1620; --panel-2:#0c121b; --line:#1b2431; --line-2:#2a394c;
-    --ink:#d6dfeb; --ink-soft:#94a3b7; --ink-faint:#65728a;
-    --accent:#37e0cc; --accent-dim:#37e0cc;
-    --crit:#ff5d62; --high:#ff9d42; --med:#f2c14e;
-    --crit-bg:rgba(255,93,98,.12); --high-bg:rgba(255,157,66,.12); --med-bg:rgba(242,193,78,.12);
-    --net:55,224,204;
-    --shadow:0 1px 0 rgba(255,255,255,.03), 0 24px 50px -28px rgba(0,0,0,.8);
-    --glass:rgba(15,22,32,.72);
+    --bg:#070a0f; --bg2:#0a0f17; --panel:#0f1620; --panel-2:#0c121b; --line:#1b2431; --line-2:#2b3a4d;
+    --ink:#dbe4f0; --ink-soft:#95a4b8; --ink-faint:#647085;
+    --accent:#3ce6d1; --accent-2:#4d8cff;
+    --crit:#ff5a63; --high:#ff9d42; --med:#f2c14e;
+    --crit-bg:rgba(255,90,99,.12); --high-bg:rgba(255,157,66,.12); --med-bg:rgba(242,193,78,.12);
+    --net:60,230,209;
+    --shadow:0 1px 0 rgba(255,255,255,.03), 0 26px 54px -30px rgba(0,0,0,.85);
+    --glass:rgba(14,21,31,.66);
     --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
     --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   }
   @media (prefers-color-scheme:light){
     :root:not([data-theme]){
-      --bg:#eef2f7; --bg2:#e7edf4; --panel:#ffffff; --panel-2:#f3f7fb; --line:#e0e6ee; --line-2:#cdd7e3;
-      --ink:#152130; --ink-soft:#495769; --ink-faint:#7a8698;
-      --accent:#0d9d8c; --net:13,157,140;
-      --crit:#d92d33; --high:#c16610; --med:#9c7500;
-      --crit-bg:rgba(217,45,51,.08); --high-bg:rgba(193,102,16,.08); --med-bg:rgba(156,117,0,.09);
-      --glass:rgba(255,255,255,.78);
-      --shadow:0 1px 2px rgba(16,32,48,.05), 0 18px 40px -26px rgba(16,32,48,.3);
+      --bg:#eceff4; --bg2:#e4eaf1; --panel:#ffffff; --panel-2:#f2f6fa; --line:#dfe5ee; --line-2:#c9d3df;
+      --ink:#111c2a; --ink-soft:#44526580; --ink-soft:#465469; --ink-faint:#78859a;
+      --accent:#0c9b8a; --accent-2:#2f6be0; --net:12,155,138;
+      --crit:#d5282f; --high:#bd6410; --med:#977100;
+      --crit-bg:rgba(213,40,47,.08); --high-bg:rgba(189,100,16,.08); --med-bg:rgba(151,113,0,.09);
+      --glass:rgba(255,255,255,.74);
+      --shadow:0 1px 2px rgba(16,32,48,.05), 0 18px 42px -28px rgba(16,32,48,.32);
     }
   }
   :root[data-theme="light"]{
-    --bg:#eef2f7; --bg2:#e7edf4; --panel:#ffffff; --panel-2:#f3f7fb; --line:#e0e6ee; --line-2:#cdd7e3;
-    --ink:#152130; --ink-soft:#495769; --ink-faint:#7a8698;
-    --accent:#0d9d8c; --net:13,157,140;
-    --crit:#d92d33; --high:#c16610; --med:#9c7500;
-    --crit-bg:rgba(217,45,51,.08); --high-bg:rgba(193,102,16,.08); --med-bg:rgba(156,117,0,.09);
-    --glass:rgba(255,255,255,.78);
-    --shadow:0 1px 2px rgba(16,32,48,.05), 0 18px 40px -26px rgba(16,32,48,.3);
+    --bg:#eceff4; --bg2:#e4eaf1; --panel:#ffffff; --panel-2:#f2f6fa; --line:#dfe5ee; --line-2:#c9d3df;
+    --ink:#111c2a; --ink-soft:#465469; --ink-faint:#78859a;
+    --accent:#0c9b8a; --accent-2:#2f6be0; --net:12,155,138;
+    --crit:#d5282f; --high:#bd6410; --med:#977100;
+    --crit-bg:rgba(213,40,47,.08); --high-bg:rgba(189,100,16,.08); --med-bg:rgba(151,113,0,.09);
+    --glass:rgba(255,255,255,.74);
+    --shadow:0 1px 2px rgba(16,32,48,.05), 0 18px 42px -28px rgba(16,32,48,.32);
   }
   :root[data-theme="dark"]{
-    --bg:#080b10; --bg2:#0a0f16; --panel:#0f1620; --panel-2:#0c121b; --line:#1b2431; --line-2:#2a394c;
-    --ink:#d6dfeb; --ink-soft:#94a3b7; --ink-faint:#65728a;
-    --accent:#37e0cc; --net:55,224,204;
-    --crit:#ff5d62; --high:#ff9d42; --med:#f2c14e;
-    --crit-bg:rgba(255,93,98,.12); --high-bg:rgba(255,157,66,.12); --med-bg:rgba(242,193,78,.12);
-    --glass:rgba(15,22,32,.72);
-    --shadow:0 1px 0 rgba(255,255,255,.03), 0 24px 50px -28px rgba(0,0,0,.8);
+    --bg:#070a0f; --bg2:#0a0f17; --panel:#0f1620; --panel-2:#0c121b; --line:#1b2431; --line-2:#2b3a4d;
+    --ink:#dbe4f0; --ink-soft:#95a4b8; --ink-faint:#647085;
+    --accent:#3ce6d1; --accent-2:#4d8cff; --net:60,230,209;
+    --crit:#ff5a63; --high:#ff9d42; --med:#f2c14e;
+    --crit-bg:rgba(255,90,99,.12); --high-bg:rgba(255,157,66,.12); --med-bg:rgba(242,193,78,.12);
+    --glass:rgba(14,21,31,.66);
+    --shadow:0 1px 0 rgba(255,255,255,.03), 0 26px 54px -30px rgba(0,0,0,.85);
   }
 
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{
-    background:radial-gradient(1200px 700px at 78% -8%, var(--bg2), var(--bg) 60%);
-    color:var(--ink); font-family:var(--sans); line-height:1.55;
-    -webkit-font-smoothing:antialiased; min-height:100vh;
-  }
+  body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.55; -webkit-font-smoothing:antialiased; min-height:100vh; overflow-x:hidden}
   #net{position:fixed; inset:0; width:100%; height:100%; z-index:0; display:block}
-  .wrap{position:relative; z-index:1; max-width:1060px; margin:0 auto; padding:clamp(22px,4vw,60px) clamp(16px,4vw,40px) 80px}
+  .vignette{position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(120% 90% at 50% -10%, transparent 40%, var(--bg) 100%);}
+  .wrap{position:relative; z-index:2; max-width:1060px; margin:0 auto; padding:clamp(24px,4vw,64px) clamp(16px,4vw,40px) 84px}
   .mono{font-family:var(--mono)} .tnum{font-variant-numeric:tabular-nums}
 
   header{margin-bottom:34px}
-  .eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--accent); margin:0 0 18px; display:flex; align-items:center; gap:10px}
-  .eyebrow::before{content:""; width:26px; height:1px; background:var(--accent); display:inline-block; box-shadow:0 0 8px var(--accent)}
-  h1{font-family:var(--mono); font-weight:600; letter-spacing:.005em; font-size:clamp(30px,5.5vw,50px); line-height:1.02; margin:0 0 14px; text-wrap:balance}
-  h1 .cursor{color:var(--accent); font-weight:400; animation:blink 1.15s step-end infinite}
+  .eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--accent); margin:0 0 20px; display:flex; align-items:center; gap:11px}
+  .eyebrow .live{width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 0 var(--accent); animation:pulse 2.4s ease-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(60,230,209,.5)}70%{box-shadow:0 0 0 9px rgba(60,230,209,0)}100%{box-shadow:0 0 0 0 rgba(60,230,209,0)}}
+  h1{font-family:var(--mono); font-weight:600; letter-spacing:.004em; font-size:clamp(32px,6vw,58px); line-height:1.0; margin:0 0 16px; text-wrap:balance;
+     background:linear-gradient(100deg,var(--ink) 30%,var(--accent) 62%,var(--accent-2) 86%,var(--ink) 100%);
+     background-size:220% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:sheen 9s ease-in-out infinite}
+  @keyframes sheen{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
+  h1 .cursor{-webkit-text-fill-color:var(--accent); animation:blink 1.15s step-end infinite}
   @keyframes blink{50%{opacity:0}}
   .role{color:var(--ink-soft); font-size:clamp(15px,2.2vw,17px); max-width:62ch; margin:0}
   .role b{color:var(--ink); font-weight:600}
   .role .tag{color:var(--accent); font-family:var(--mono); font-size:.92em}
 
-  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:30px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden; backdrop-filter:blur(6px)}
-  .stat{background:var(--glass); padding:17px 18px}
-  .stat .n{font-family:var(--mono); font-size:clamp(21px,3vw,27px); font-weight:600; line-height:1; letter-spacing:-.01em}
-  .stat .l{font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.13em; margin-top:9px}
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:32px; background:var(--line); border:1px solid var(--line); border-radius:16px; overflow:hidden; backdrop-filter:blur(7px)}
+  .stat{background:var(--glass); padding:18px 18px}
+  .stat .n{font-family:var(--mono); font-size:clamp(22px,3vw,29px); font-weight:600; line-height:1; letter-spacing:-.01em}
+  .stat .l{font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.13em; margin-top:10px}
   .stat.crit .n{color:var(--crit)} .stat.high .n{color:var(--high)} .stat.acc .n{color:var(--accent)}
   @media (max-width:620px){ .stats{grid-template-columns:repeat(2,1fr)} }
 
-  .sec{display:flex; align-items:baseline; gap:14px; margin:42px 0 18px}
-  .sec h2{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--ink-soft); margin:0}
-  .sec .rule{flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent)}
+  /* severity distribution bar */
+  .threat{margin-top:16px; display:flex; align-items:center; gap:14px}
+  .threat .bar{flex:1; height:8px; border-radius:999px; overflow:hidden; display:flex; background:var(--panel-2); border:1px solid var(--line)}
+  .threat .seg{height:100%; transform:scaleX(0); transform-origin:left; animation:grow 1s .3s cubic-bezier(.2,.8,.2,1) forwards}
+  .threat .seg.c{background:var(--crit)} .threat .seg.h{background:var(--high)} .threat .seg.m{background:var(--med)}
+  @keyframes grow{to{transform:scaleX(1)}}
+  .threat .lg{font-family:var(--mono); font-size:11px; color:var(--ink-faint); white-space:nowrap; letter-spacing:.04em}
+  .threat .lg b{color:var(--ink-soft); font-weight:600}
+
+  .sec{display:flex; align-items:baseline; gap:14px; margin:44px 0 18px}
+  .sec h2{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); margin:0}
+  .sec .rule{flex:1; height:1px; background:linear-gradient(90deg,var(--line-2),transparent)}
   .sec .count{font-family:var(--mono); font-size:12px; color:var(--ink-faint)}
 
   .list{display:flex; flex-direction:column; gap:14px}
-  .card{position:relative; background:var(--glass); border:1px solid var(--line); border-radius:14px; padding:20px 22px 20px 26px; box-shadow:var(--shadow); overflow:hidden; backdrop-filter:blur(9px)}
-  .card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--sev); box-shadow:0 0 16px var(--sev)}
+  .reveal{opacity:0; transform:translateY(16px)}
+  .reveal.in{opacity:1; transform:none; transition:opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1)}
+  .card{position:relative; background:var(--glass); border:1px solid var(--line); border-radius:15px; padding:20px 22px 20px 26px; box-shadow:var(--shadow); overflow:hidden; backdrop-filter:blur(10px)}
+  .card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--sev); box-shadow:0 0 18px var(--sev)}
+  .card::after{content:""; position:absolute; inset:0; background:radial-gradient(600px 200px at 0% 0%, color-mix(in srgb,var(--sev) 9%, transparent), transparent 60%); opacity:0; transition:opacity .3s; pointer-events:none}
+  .card:hover::after{opacity:1}
   .card.sev-crit{--sev:var(--crit)} .card.sev-high{--sev:var(--high)} .card.sev-med{--sev:var(--med)}
-  .card.sev-crit{border-color:color-mix(in srgb, var(--crit) 32%, var(--line))}
+  .card.sev-crit{border-color:color-mix(in srgb, var(--crit) 34%, var(--line))}
 
-  .top{display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; margin-bottom:12px}
+  .top{display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; margin-bottom:12px; position:relative}
   .pkg{font-family:var(--mono); font-size:16px; font-weight:600; color:var(--ink); letter-spacing:-.01em}
   .pill{font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:999px; border:1px solid transparent; white-space:nowrap}
   .pill.crit{color:var(--crit); background:var(--crit-bg); border-color:var(--crit)}
@@ -92,24 +107,24 @@
   .spacer{flex:1}
   .cve{font-family:var(--mono); font-size:12px; color:var(--ink-faint)}
   .cve .dot{display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-right:6px; vertical-align:middle; box-shadow:0 0 7px var(--accent)}
-  .desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 14px; max-width:74ch}
+  .desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 14px; max-width:74ch; position:relative}
   .desc code{font-family:var(--mono); font-size:.9em; color:var(--ink); background:var(--panel-2); padding:1px 5px; border-radius:4px; border:1px solid var(--line)}
   .desc b{color:var(--ink)}
-  .meta{display:flex; flex-wrap:wrap; gap:9px 22px; padding-top:12px; border-top:1px solid var(--line)}
+  .meta{display:flex; flex-wrap:wrap; gap:9px 22px; padding-top:12px; border-top:1px solid var(--line); position:relative}
   .m{display:flex; flex-direction:column; gap:3px}
   .m .k{font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--ink-faint)}
   .m .v{font-family:var(--mono); font-size:13px; color:var(--ink)}
 
   .certs{display:grid; grid-template-columns:1fr 1fr; gap:14px}
   @media (max-width:620px){ .certs{grid-template-columns:1fr} }
-  .cert{display:flex; align-items:center; gap:18px; background:var(--glass); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); backdrop-filter:blur(9px)}
-  .badge{flex:none; width:66px; height:66px; border-radius:13px; display:grid; place-items:center; font-family:var(--mono); font-weight:700; font-size:16px; letter-spacing:.04em; color:#c9b6ff; background:rgba(139,109,246,.14); border:1px solid rgba(139,109,246,.5)}
-  .badge.alt{color:#ff9384; background:rgba(240,98,92,.13); border-color:rgba(240,98,92,.5)}
+  .cert{display:flex; align-items:center; gap:18px; background:var(--glass); border:1px solid var(--line); border-radius:15px; padding:18px 20px; box-shadow:var(--shadow); backdrop-filter:blur(10px)}
+  .badge{flex:none; width:66px; height:66px; border-radius:13px; display:grid; place-items:center; font-family:var(--mono); font-weight:700; font-size:16px; letter-spacing:.04em; color:#c9b6ff; background:rgba(139,109,246,.14); border:1px solid rgba(139,109,246,.5); box-shadow:0 0 24px -6px rgba(139,109,246,.4) inset}
+  .badge.alt{color:#ff9384; background:rgba(240,98,92,.13); border-color:rgba(240,98,92,.5); box-shadow:0 0 24px -6px rgba(240,98,92,.4) inset}
   .ctitle{font-size:14.5px; font-weight:600; color:var(--ink); line-height:1.3}
   .cissuer{font-size:12.5px; color:var(--ink-soft); margin-top:4px}
   .cid{font-family:var(--mono); font-size:11px; color:var(--ink-faint); margin-top:7px}
 
-  .panelblock{background:var(--glass); border:1px solid var(--line); border-radius:14px; padding:24px; backdrop-filter:blur(9px)}
+  .panelblock{background:var(--glass); border:1px solid var(--line); border-radius:15px; padding:24px; backdrop-filter:blur(10px)}
   .method{display:grid; grid-template-columns:repeat(4,1fr); gap:22px}
   @media (max-width:720px){ .method{grid-template-columns:repeat(2,1fr)} }
   .step .k{font-family:var(--mono); font-size:12px; color:var(--accent); margin-bottom:6px}
@@ -121,36 +136,46 @@
   footer a{color:var(--accent); text-decoration:none; font-family:var(--mono); font-size:13px}
   footer a:hover{text-decoration:underline}
 
-  .toggle{position:fixed; top:16px; right:16px; z-index:5; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; background:var(--glass); color:var(--ink-soft); border:1px solid var(--line-2); border-radius:999px; padding:7px 13px; cursor:pointer; backdrop-filter:blur(8px)}
+  .toggle{position:fixed; top:16px; right:16px; z-index:6; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; background:var(--glass); color:var(--ink-soft); border:1px solid var(--line-2); border-radius:999px; padding:7px 13px; cursor:pointer; backdrop-filter:blur(8px)}
   .toggle:hover{color:var(--ink); border-color:var(--accent)}
   .toggle:focus-visible, a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
-  @media (prefers-reduced-motion:no-preference){ .card{transition:border-color .18s ease, transform .18s ease} .card:hover{border-color:var(--line-2); transform:translateY(-1px)} }
+  @media (prefers-reduced-motion:no-preference){ .card{transition:border-color .2s ease, transform .2s ease} .card:hover{border-color:var(--line-2); transform:translateY(-2px)} }
+  @media (prefers-reduced-motion:reduce){ .reveal{opacity:1; transform:none} h1{animation:none} .threat .seg{animation:none; transform:none} }
 </style>
 
 <canvas id="net" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
 <button class="toggle" id="tg" aria-label="Toggle colour theme">◐ theme</button>
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">Open-source vulnerability research</p>
+    <p class="eyebrow"><span class="live"></span>Open-source vulnerability research</p>
     <h1>Talatbek Urunov<span class="cursor">_</span></h1>
     <p class="role">Independent security researcher · HTB-certified <span class="tag">(CPTS · CWES)</span>. Discovered <b>8 novel vulnerabilities</b> across widely-used npm packages — from arbitrary code execution to algorithmic denial of service — each verified with a working proof-of-concept, reported through coordinated disclosure, and shipped with a proposed fix.</p>
     <div class="stats">
-      <div class="stat acc"><div class="n tnum">8</div><div class="l">Novel findings</div></div>
-      <div class="stat crit"><div class="n tnum">1</div><div class="l">Critical · 9.8</div></div>
-      <div class="stat high"><div class="n tnum">1</div><div class="l">High · 8.1</div></div>
-      <div class="stat"><div class="n tnum">~98M</div><div class="l">Monthly downloads</div></div>
+      <div class="stat acc"><div class="n tnum" data-to="8">0</div><div class="l">Novel findings</div></div>
+      <div class="stat crit"><div class="n tnum" data-to="1">0</div><div class="l">Critical · 9.8</div></div>
+      <div class="stat high"><div class="n tnum" data-to="1">0</div><div class="l">High · 8.1</div></div>
+      <div class="stat"><div class="n tnum" data-suffix="M" data-prefix="~" data-to="98">0</div><div class="l">Monthly downloads</div></div>
+    </div>
+    <div class="threat">
+      <div class="bar">
+        <div class="seg c" style="width:12.5%"></div>
+        <div class="seg h" style="width:12.5%; animation-delay:.4s"></div>
+        <div class="seg m" style="width:75%; animation-delay:.5s"></div>
+      </div>
+      <span class="lg"><b>1</b> critical · <b>1</b> high · <b>6</b> medium</span>
     </div>
   </header>
 
   <div class="sec"><h2>Code execution</h2><span class="rule"></span><span class="count">2 findings</span></div>
   <div class="list">
-    <article class="card sev-crit">
+    <article class="card sev-crit reveal">
       <div class="top"><span class="pkg">gray-matter</span><span class="pill crit">Critical</span><span class="cvss">CVSS 9.8</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc">Front-matter language is auto-detected from untrusted input and routed to an <code>eval</code> engine. A markdown document beginning <code>---js</code> executes arbitrary JavaScript in the host process — <b>no application opt-in required</b>. Full remote code execution from user-submitted content.</p>
       <div class="meta"><div class="m"><span class="k">Class</span><span class="v">CWE-94 · Code Injection</span></div><div class="m"><span class="k">Sink</span><span class="v">matter() → eval()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 4.0.3 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~30M / mo</span></div></div>
     </article>
-    <article class="card sev-high">
+    <article class="card sev-high reveal">
       <div class="top"><span class="pkg">yaml-front-matter</span><span class="pill high">High</span><span class="cvss">CVSS 8.1</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc">The primary <code>loadFront()</code> API parses front-matter with js-yaml's unsafe full schema, enabling the <code>!!js/function</code> tag. Untrusted front-matter deserializes into callable JavaScript functions — code execution when the application invokes a front-matter value.</p>
       <div class="meta"><div class="m"><span class="k">Class</span><span class="v">CWE-502 · Deserialization</span></div><div class="m"><span class="k">Sink</span><span class="v">loadFront() → yaml.load</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 4.1.1 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~353K / mo</span></div></div>
@@ -159,32 +184,32 @@
 
   <div class="sec"><h2>Regular expression denial of service</h2><span class="rule"></span><span class="count">6 findings</span></div>
   <div class="list">
-    <article class="card sev-med">
+    <article class="card sev-med reveal">
       <div class="top"><span class="pkg">strip-comments</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Exponential</b> backtracking in the quoted-string regex (a latent <code>[^\1]</code> class bug). A ~65-byte input freezes the Node.js event loop for ~39 seconds; a few more bytes never returns.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(2ⁿ) exponential</span></div><div class="m"><span class="k">Function</span><span class="v">strip()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 2.0.1 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~36M / mo</span></div></div>
     </article>
-    <article class="card sev-med">
+    <article class="card sev-med reveal">
       <div class="top"><span class="pkg">platform (platform.js)</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Quadratic</b> backtracking in the Android User-Agent regex of <code>parse()</code>. A crafted ~720 KB User-Agent blocks the event loop for ~22 seconds; reachable wherever User-Agent strings are parsed.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div><div class="m"><span class="k">Function</span><span class="v">parse(ua)</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 1.3.6 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~25M / mo</span></div></div>
     </article>
-    <article class="card sev-med">
+    <article class="card sev-med reveal">
       <div class="top"><span class="pkg">semver-utils</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Cubic</b> backtracking in <code>parseRange()</code> on a run of whitespace. ~4 KB of spaces blocks the event loop for ~19 seconds; a small payload for a large stall.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n³) cubic</span></div><div class="m"><span class="k">Function</span><span class="v">parseRange()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 1.1.4 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~2M / mo</span></div></div>
     </article>
-    <article class="card sev-med">
+    <article class="card sev-med reveal">
       <div class="top"><span class="pkg">underscore.string</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Quadratic</b> backtracking in <code>stripTags()</code> on unclosed <code>&lt;</code> characters. Distinct from the earlier <code>unescapeHTML</code> issue (CVE-2017-16116) and unpatched in the latest release.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div><div class="m"><span class="k">Function</span><span class="v">stripTags()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 3.3.6 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~4M / mo</span></div></div>
     </article>
-    <article class="card sev-med">
+    <article class="card sev-med reveal">
       <div class="top"><span class="pkg">auth-header</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Quadratic</b> backtracking while tokenizing HTTP <code>Authorization</code> / <code>WWW-Authenticate</code> headers. A ~160 KB header of space-separated tokens blocks the event loop for ~26 seconds.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div><div class="m"><span class="k">Function</span><span class="v">parse(header)</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 1.0.0 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~530K / mo</span></div></div>
     </article>
-    <article class="card sev-med">
+    <article class="card sev-med reveal">
       <div class="top"><span class="pkg">configparser</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Polynomial</b> backtracking in <code>read()</code> on a whitespace-heavy configuration line. An ~8 KB line blocks the event loop for ~88 seconds; reachable via attacker-controlled config files.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n³) polynomial</span></div><div class="m"><span class="k">Function</span><span class="v">read(file)</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 0.3.10 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~132K / mo</span></div></div>
@@ -193,12 +218,12 @@
 
   <div class="sec"><h2>Certifications</h2><span class="rule"></span><span class="count">Hack The Box</span></div>
   <div class="certs">
-    <article class="cert"><div class="badge">CPTS</div><div><div class="ctitle">Certified Penetration Testing Specialist</div><div class="cissuer">Hack The Box · earned Jul 2026</div><div class="cid">ID · HTBCERT-8560F4D0B7</div></div></article>
-    <article class="cert"><div class="badge alt">CWES</div><div><div class="ctitle">Certified Web Exploitation Specialist</div><div class="cissuer">Hack The Box · earned Jun 2026</div><div class="cid">ID · HTBCERT-7FDA841FCA</div></div></article>
+    <article class="cert reveal"><div class="badge">CPTS</div><div><div class="ctitle">Certified Penetration Testing Specialist</div><div class="cissuer">Hack The Box · earned Jul 2026</div><div class="cid">ID · HTBCERT-8560F4D0B7</div></div></article>
+    <article class="cert reveal"><div class="badge alt">CWES</div><div><div class="ctitle">Certified Web Exploitation Specialist</div><div class="cissuer">Hack The Box · earned Jun 2026</div><div class="cid">ID · HTBCERT-7FDA841FCA</div></div></article>
   </div>
 
   <div class="sec"><h2>Method</h2><span class="rule"></span></div>
-  <div class="panelblock">
+  <div class="panelblock reveal">
     <div class="method">
       <div class="step"><div class="k">01 · Analyze</div><div class="t">Static extraction and classification of regex literals (recheck); source auditing for dangerous sinks — <span class="mono">eval</span>, <span class="mono">new&nbsp;Function</span>, unsafe deserialization.</div></div>
       <div class="step"><div class="k">02 · Verify</div><div class="t">Every finding confirmed end-to-end through the package's public API with a working proof-of-concept and measured impact.</div></div>
@@ -220,44 +245,78 @@
 
 <script>
 (function(){
-  var btn=document.getElementById('tg');
-  function cur(){var s=document.documentElement.getAttribute('data-theme');return s||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');}
-  btn.addEventListener('click',function(){document.documentElement.setAttribute('data-theme', cur()==='dark'?'light':'dark');});
-
-  var canvas=document.getElementById('net'), ctx=canvas.getContext('2d');
+  var root=document.documentElement, btn=document.getElementById('tg');
+  function cur(){var s=root.getAttribute('data-theme');return s||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');}
+  btn.addEventListener('click',function(){root.setAttribute('data-theme', cur()==='dark'?'light':'dark');});
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var W,H,DPR,nodes=[],rgb='55,224,204',maxD2;
-  function readColor(){var c=getComputedStyle(document.documentElement).getPropertyValue('--net').trim(); if(c) rgb=c;}
+
+  /* ---- animated network with cursor interaction ---- */
+  var canvas=document.getElementById('net'), ctx=canvas.getContext('2d');
+  var W,H,DPR,nodes=[],rgb='60,230,209',maxD2,mouse={x:-9999,y:-9999,on:false};
+  function readColor(){var c=getComputedStyle(root).getPropertyValue('--net').trim(); if(c) rgb=c;}
   function resize(){
     DPR=Math.min(window.devicePixelRatio||1,2);
     W=canvas.width=innerWidth*DPR; H=canvas.height=innerHeight*DPR;
     canvas.style.width=innerWidth+'px'; canvas.style.height=innerHeight+'px';
-    var target=Math.round(Math.min(90,(innerWidth*innerHeight)/16000));
+    var target=Math.round(Math.min(96,(innerWidth*innerHeight)/15000));
     nodes=[];
-    for(var i=0;i<target;i++) nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*0.14*DPR,vy:(Math.random()-.5)*0.14*DPR,r:(Math.random()*1.6+0.7)*DPR});
-    maxD2=(140*DPR)*(140*DPR);
+    for(var i=0;i<target;i++) nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*0.15*DPR,vy:(Math.random()-.5)*0.15*DPR,r:(Math.random()*1.7+0.7)*DPR});
+    maxD2=(150*DPR)*(150*DPR);
   }
+  addEventListener('mousemove',function(e){mouse.x=e.clientX*DPR; mouse.y=e.clientY*DPR; mouse.on=true;});
+  addEventListener('mouseout',function(){mouse.on=false;});
   function frame(){
     readColor();
     ctx.clearRect(0,0,W,H);
+    var mr2=(180*DPR)*(180*DPR);
     for(var i=0;i<nodes.length;i++){
       var a=nodes[i]; a.x+=a.vx; a.y+=a.vy;
       if(a.x<0||a.x>W)a.vx*=-1; if(a.y<0||a.y>H)a.vy*=-1;
+      /* link to cursor */
+      if(mouse.on){
+        var mdx=a.x-mouse.x,mdy=a.y-mouse.y,md2=mdx*mdx+mdy*mdy;
+        if(md2<mr2){
+          var mo=(1-md2/mr2)*0.5;
+          ctx.strokeStyle='rgba('+rgb+','+mo.toFixed(3)+')'; ctx.lineWidth=DPR*0.7;
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(mouse.x,mouse.y); ctx.stroke();
+          a.vx += -mdx/md2*6; a.vy += -mdy/md2*6;
+          a.vx=Math.max(-.5*DPR,Math.min(.5*DPR,a.vx)); a.vy=Math.max(-.5*DPR,Math.min(.5*DPR,a.vy));
+        }
+      }
       for(var j=i+1;j<nodes.length;j++){
         var b=nodes[j],dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy;
         if(d2<maxD2){
-          var o=(1-d2/maxD2)*0.34;
-          ctx.strokeStyle='rgba('+rgb+','+o.toFixed(3)+')'; ctx.lineWidth=DPR*0.6;
+          var o=(1-d2/maxD2)*0.32;
+          ctx.strokeStyle='rgba('+rgb+','+o.toFixed(3)+')'; ctx.lineWidth=DPR*0.55;
           ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
         }
       }
-      ctx.fillStyle='rgba('+rgb+',0.55)';
+      ctx.fillStyle='rgba('+rgb+',0.6)';
       ctx.beginPath(); ctx.arc(a.x,a.y,a.r,0,6.283); ctx.fill();
     }
+    if(mouse.on){ ctx.fillStyle='rgba('+rgb+',0.9)'; ctx.beginPath(); ctx.arc(mouse.x,mouse.y,2.2*DPR,0,6.283); ctx.fill(); }
     if(!reduce) requestAnimationFrame(frame);
   }
-  resize();
-  addEventListener('resize',function(){clearTimeout(window.__rt); window.__rt=setTimeout(resize,180);});
-  frame();
+  resize(); addEventListener('resize',function(){clearTimeout(window.__rt); window.__rt=setTimeout(resize,180);}); frame();
+
+  /* ---- count-up stats ---- */
+  function countUp(el){
+    var to=+el.getAttribute('data-to'), pre=el.getAttribute('data-prefix')||'', suf=el.getAttribute('data-suffix')||'';
+    if(reduce){el.textContent=pre+to+suf; return;}
+    var start=performance.now(), dur=1100;
+    function tick(now){
+      var p=Math.min(1,(now-start)/dur), e=1-Math.pow(1-p,3), v=Math.round(e*to);
+      el.textContent=pre+v+suf;
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  /* ---- scroll reveal ---- */
+  if('IntersectionObserver' in window && !reduce){
+    var io=new IntersectionObserver(function(es){es.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target);} });},{threshold:.12, rootMargin:'0px 0px -6% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+  } else { document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in');}); }
+  /* fire count-up shortly after load */
+  setTimeout(function(){ document.querySelectorAll('.stat .n').forEach(countUp); }, 200);
 })();
 </script>

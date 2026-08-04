@@ -1,0 +1,375 @@
+<title>TALATBEK URUNOV — Security Research</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#0a0e13; --panel:#111823; --panel-2:#0e141d; --line:#1d2733; --line-2:#283444;
+    --ink:#d3dce8; --ink-soft:#93a1b4; --ink-faint:#647082;
+    --accent:#33d6c4; --accent-ink:#0a0e13;
+    --crit:#ff5d62; --high:#ff9d42; --med:#f2c14e;
+    --crit-bg:rgba(255,93,98,.12); --high-bg:rgba(255,157,66,.12); --med-bg:rgba(242,193,78,.12);
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 18px 40px -24px rgba(0,0,0,.7);
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:light){
+    :root{
+      --bg:#eef2f6; --panel:#ffffff; --panel-2:#f4f7fa; --line:#e0e6ee; --line-2:#d2dae4;
+      --ink:#182230; --ink-soft:#4a5769; --ink-faint:#7c8798;
+      --accent:#0e9d8c; --accent-ink:#ffffff;
+      --crit:#d92d33; --high:#c96a10; --med:#a67c00;
+      --crit-bg:rgba(217,45,51,.08); --high-bg:rgba(201,106,16,.08); --med-bg:rgba(166,124,0,.09);
+      --shadow:0 1px 2px rgba(16,32,48,.05), 0 14px 34px -22px rgba(16,32,48,.28);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a0e13; --panel:#111823; --panel-2:#0e141d; --line:#1d2733; --line-2:#283444;
+    --ink:#d3dce8; --ink-soft:#93a1b4; --ink-faint:#647082;
+    --accent:#33d6c4; --accent-ink:#0a0e13;
+    --crit:#ff5d62; --high:#ff9d42; --med:#f2c14e;
+    --crit-bg:rgba(255,93,98,.12); --high-bg:rgba(255,157,66,.12); --med-bg:rgba(242,193,78,.12);
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 18px 40px -24px rgba(0,0,0,.7);
+  }
+  :root[data-theme="light"]{
+    --bg:#eef2f6; --panel:#ffffff; --panel-2:#f4f7fa; --line:#e0e6ee; --line-2:#d2dae4;
+    --ink:#182230; --ink-soft:#4a5769; --ink-faint:#7c8798;
+    --accent:#0e9d8c; --accent-ink:#ffffff;
+    --crit:#d92d33; --high:#c96a10; --med:#a67c00;
+    --crit-bg:rgba(217,45,51,.08); --high-bg:rgba(201,106,16,.08); --med-bg:rgba(166,124,0,.09);
+    --shadow:0 1px 2px rgba(16,32,48,.05), 0 14px 34px -22px rgba(16,32,48,.28);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); line-height:1.55;
+    font-feature-settings:"kern";
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1060px; margin:0 auto; padding:clamp(20px,4vw,56px) clamp(16px,4vw,40px) 72px}
+  .mono{font-family:var(--mono)}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* ---- header ---- */
+  header{border-bottom:1px solid var(--line); padding-bottom:30px; margin-bottom:34px}
+  .eyebrow{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 16px; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:""; width:24px; height:1px; background:var(--accent); display:inline-block}
+  h1{
+    font-family:var(--mono); font-weight:600; letter-spacing:.01em;
+    font-size:clamp(28px,5vw,44px); line-height:1.05; margin:0 0 12px; text-wrap:balance;
+  }
+  .role{color:var(--ink-soft); font-size:clamp(15px,2.2vw,17px); max-width:60ch; margin:0}
+  .role b{color:var(--ink); font-weight:600}
+
+  /* ---- stat strip ---- */
+  .stats{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    margin-top:28px; background:var(--line); border:1px solid var(--line);
+    border-radius:12px; overflow:hidden;
+  }
+  .stat{background:var(--panel); padding:16px 18px}
+  .stat .n{font-family:var(--mono); font-size:clamp(20px,3vw,26px); font-weight:600; line-height:1; letter-spacing:-.01em}
+  .stat .l{font-size:11.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.12em; margin-top:8px}
+  .stat.crit .n{color:var(--crit)} .stat.high .n{color:var(--high)}
+  @media (max-width:620px){ .stats{grid-template-columns:repeat(2,1fr)} }
+
+  /* ---- section label ---- */
+  .sec{display:flex; align-items:baseline; gap:14px; margin:40px 0 18px}
+  .sec h2{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin:0}
+  .sec .rule{flex:1; height:1px; background:var(--line)}
+  .sec .count{font-family:var(--mono); font-size:12px; color:var(--ink-faint)}
+
+  /* ---- finding cards ---- */
+  .list{display:flex; flex-direction:column; gap:14px}
+  .card{
+    position:relative; background:var(--panel); border:1px solid var(--line);
+    border-radius:12px; padding:20px 22px 20px 26px; box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--sev)}
+  .card.sev-crit{--sev:var(--crit)} .card.sev-high{--sev:var(--high)} .card.sev-med{--sev:var(--med)}
+
+  .top{display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; margin-bottom:12px}
+  .pkg{font-family:var(--mono); font-size:16px; font-weight:600; color:var(--ink); letter-spacing:-.01em}
+  .pill{
+    font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    padding:3px 9px; border-radius:999px; border:1px solid transparent; white-space:nowrap;
+  }
+  .pill.crit{color:var(--crit); background:var(--crit-bg); border-color:var(--crit)}
+  .pill.high{color:var(--high); background:var(--high-bg); border-color:var(--high)}
+  .pill.med{color:var(--med); background:var(--med-bg); border-color:var(--med)}
+  .cvss{font-family:var(--mono); font-size:12px; color:var(--ink-soft); background:var(--panel-2); border:1px solid var(--line); padding:2px 8px; border-radius:6px}
+  .spacer{flex:1}
+  .cve{font-family:var(--mono); font-size:12px; color:var(--ink-faint); letter-spacing:.02em}
+  .cve .dot{display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-right:6px; vertical-align:middle; opacity:.7}
+
+  .desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 14px; max-width:74ch}
+  .desc code{font-family:var(--mono); font-size:.9em; color:var(--ink); background:var(--panel-2); padding:1px 5px; border-radius:4px; border:1px solid var(--line)}
+
+  .meta{display:flex; flex-wrap:wrap; gap:8px 22px; padding-top:12px; border-top:1px solid var(--line)}
+  .m{display:flex; flex-direction:column; gap:3px}
+  .m .k{font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--ink-faint)}
+  .m .v{font-family:var(--mono); font-size:13px; color:var(--ink)}
+
+  /* ---- certifications ---- */
+  .certs{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media (max-width:620px){ .certs{grid-template-columns:1fr} }
+  .cert{display:flex; align-items:center; gap:18px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 20px; box-shadow:var(--shadow)}
+  .badge{
+    flex:none; width:66px; height:66px; border-radius:12px; display:grid; place-items:center;
+    font-family:var(--mono); font-weight:700; font-size:16px; letter-spacing:.04em;
+    color:#c9b6ff; background:rgba(139,109,246,.14); border:1px solid rgba(139,109,246,.5);
+  }
+  .badge.alt{color:#ff9384; background:rgba(240,98,92,.13); border-color:rgba(240,98,92,.5)}
+  :root[data-theme="light"] .badge{color:#5b3fc4; background:rgba(139,109,246,.12); border-color:rgba(139,109,246,.45)}
+  :root[data-theme="light"] .badge.alt{color:#c0392f; background:rgba(240,98,92,.1); border-color:rgba(240,98,92,.45)}
+  @media (prefers-color-scheme:light){
+    :root:not([data-theme]) .badge{color:#5b3fc4; background:rgba(139,109,246,.12); border-color:rgba(139,109,246,.45)}
+    :root:not([data-theme]) .badge.alt{color:#c0392f; background:rgba(240,98,92,.1); border-color:rgba(240,98,92,.45)}
+  }
+  .ctitle{font-size:14.5px; font-weight:600; color:var(--ink); line-height:1.3}
+  .cissuer{font-size:12.5px; color:var(--ink-soft); margin-top:4px}
+  .cid{font-family:var(--mono); font-size:11px; color:var(--ink-faint); margin-top:7px; letter-spacing:.02em}
+
+  /* ---- method / footer ---- */
+  .panelblock{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:24px 24px; margin-top:16px}
+  .method{display:grid; grid-template-columns:repeat(4,1fr); gap:20px}
+  @media (max-width:720px){ .method{grid-template-columns:repeat(2,1fr)} }
+  .step .k{font-family:var(--mono); font-size:12px; color:var(--accent); margin-bottom:6px; letter-spacing:.03em}
+  .step .t{font-size:13.5px; color:var(--ink-soft); line-height:1.5}
+  footer{margin-top:40px; padding-top:24px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:16px 28px; align-items:center; justify-content:space-between}
+  footer .who{font-family:var(--mono); font-size:13px; color:var(--ink)}
+  footer .links{display:flex; gap:18px; flex-wrap:wrap}
+  footer a{color:var(--accent); text-decoration:none; font-family:var(--mono); font-size:13px; letter-spacing:.02em}
+  footer a:hover{text-decoration:underline}
+  .note{font-size:12px; color:var(--ink-faint); margin-top:14px; line-height:1.5}
+
+  .toggle{
+    position:fixed; top:16px; right:16px; z-index:10;
+    font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    background:var(--panel); color:var(--ink-soft); border:1px solid var(--line-2);
+    border-radius:999px; padding:7px 13px; cursor:pointer;
+  }
+  .toggle:hover{color:var(--ink); border-color:var(--accent)}
+  .toggle:focus-visible, a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
+  @media (prefers-reduced-motion:no-preference){ .card{transition:border-color .18s ease} .card:hover{border-color:var(--line-2)} }
+</style>
+
+<button class="toggle" id="tg" aria-label="Toggle colour theme">◐ theme</button>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Open-source vulnerability research</p>
+    <h1>Talatbek Urunov</h1>
+    <p class="role">Independent security researcher · HTB-certified (<b>CPTS</b>, <b>CWES</b>). Discovered <b>8 novel vulnerabilities</b> across widely-used npm packages — from arbitrary code execution to algorithmic denial of service — each verified with a working proof-of-concept, reported through coordinated disclosure, and shipped with a proposed fix.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="n tnum">8</div><div class="l">Novel findings</div></div>
+      <div class="stat crit"><div class="n tnum">1</div><div class="l">Critical &nbsp;9.8</div></div>
+      <div class="stat high"><div class="n tnum">1</div><div class="l">High &nbsp;8.1</div></div>
+      <div class="stat"><div class="n tnum">~98M</div><div class="l">Monthly downloads reached</div></div>
+    </div>
+  </header>
+
+  <div class="sec"><h2>Code execution</h2><span class="rule"></span><span class="count">2 findings</span></div>
+  <div class="list">
+
+    <article class="card sev-crit">
+      <div class="top">
+        <span class="pkg">gray-matter</span>
+        <span class="pill crit">Critical</span>
+        <span class="cvss">CVSS 9.8</span>
+        <span class="spacer"></span>
+        <span class="cve"><span class="dot"></span>CVE pending</span>
+      </div>
+      <p class="desc">Front-matter language is auto-detected from untrusted input and routed to an <code>eval</code> engine. A markdown document beginning <code>---js</code> executes arbitrary JavaScript in the host process — <b>no application opt-in required</b>. Full remote code execution from user-submitted content.</p>
+      <div class="meta">
+        <div class="m"><span class="k">Class</span><span class="v">CWE-94 · Code Injection</span></div>
+        <div class="m"><span class="k">Sink</span><span class="v">matter() → eval()</span></div>
+        <div class="m"><span class="k">Affected</span><span class="v">≤ 4.0.3 (latest)</span></div>
+        <div class="m"><span class="k">Downloads</span><span class="v tnum">~30M / mo</span></div>
+      </div>
+    </article>
+
+    <article class="card sev-high">
+      <div class="top">
+        <span class="pkg">yaml-front-matter</span>
+        <span class="pill high">High</span>
+        <span class="cvss">CVSS 8.1</span>
+        <span class="spacer"></span>
+        <span class="cve"><span class="dot"></span>CVE pending</span>
+      </div>
+      <p class="desc">The primary <code>loadFront()</code> API parses front-matter with js-yaml's unsafe full schema, enabling the <code>!!js/function</code> tag. Untrusted front-matter deserializes into callable JavaScript functions — code execution when the application invokes a front-matter value.</p>
+      <div class="meta">
+        <div class="m"><span class="k">Class</span><span class="v">CWE-502 · Deserialization</span></div>
+        <div class="m"><span class="k">Sink</span><span class="v">loadFront() → yaml.load</span></div>
+        <div class="m"><span class="k">Affected</span><span class="v">≤ 4.1.1 (latest)</span></div>
+        <div class="m"><span class="k">Downloads</span><span class="v tnum">~353K / mo</span></div>
+      </div>
+    </article>
+  </div>
+
+  <div class="sec"><h2>Regular expression denial of service</h2><span class="rule"></span><span class="count">6 findings</span></div>
+  <div class="list">
+
+    <article class="card sev-med">
+      <div class="top">
+        <span class="pkg">strip-comments</span>
+        <span class="pill med">Medium</span>
+        <span class="cvss">CVSS 5.3</span>
+        <span class="spacer"></span>
+        <span class="cve"><span class="dot"></span>CVE pending</span>
+      </div>
+      <p class="desc"><b>Exponential</b> backtracking in the quoted-string regex (a latent <code>[^\1]</code> class bug). A ~65-byte input freezes the Node.js event loop for ~39 seconds; a few more bytes never returns.</p>
+      <div class="meta">
+        <div class="m"><span class="k">Complexity</span><span class="v">O(2ⁿ) exponential</span></div>
+        <div class="m"><span class="k">Function</span><span class="v">strip()</span></div>
+        <div class="m"><span class="k">Affected</span><span class="v">≤ 2.0.1 (latest)</span></div>
+        <div class="m"><span class="k">Downloads</span><span class="v tnum">~36M / mo</span></div>
+      </div>
+    </article>
+
+    <article class="card sev-med">
+      <div class="top">
+        <span class="pkg">platform (platform.js)</span>
+        <span class="pill med">Medium</span>
+        <span class="cvss">CVSS 5.3</span>
+        <span class="spacer"></span>
+        <span class="cve"><span class="dot"></span>CVE pending</span>
+      </div>
+      <p class="desc"><b>Quadratic</b> backtracking in the Android User-Agent regex of <code>parse()</code>. A crafted ~720 KB User-Agent blocks the event loop for ~22 seconds; reachable wherever User-Agent strings are parsed.</p>
+      <div class="meta">
+        <div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div>
+        <div class="m"><span class="k">Function</span><span class="v">parse(ua)</span></div>
+        <div class="m"><span class="k">Affected</span><span class="v">≤ 1.3.6 (latest)</span></div>
+        <div class="m"><span class="k">Downloads</span><span class="v tnum">~25M / mo</span></div>
+      </div>
+    </article>
+
+    <article class="card sev-med">
+      <div class="top">
+        <span class="pkg">semver-utils</span>
+        <span class="pill med">Medium</span>
+        <span class="cvss">CVSS 5.3</span>
+        <span class="spacer"></span>
+        <span class="cve"><span class="dot"></span>CVE pending</span>
+      </div>
+      <p class="desc"><b>Cubic</b> backtracking in <code>parseRange()</code> on a run of whitespace. ~4 KB of spaces blocks the event loop for ~19 seconds; a small payload for a large stall.</p>
+      <div class="meta">
+        <div class="m"><span class="k">Complexity</span><span class="v">O(n³) cubic</span></div>
+        <div class="m"><span class="k">Function</span><span class="v">parseRange()</span></div>
+        <div class="m"><span class="k">Affected</span><span class="v">≤ 1.1.4 (latest)</span></div>
+        <div class="m"><span class="k">Downloads</span><span class="v tnum">~2M / mo</span></div>
+      </div>
+    </article>
+
+    <article class="card sev-med">
+      <div class="top">
+        <span class="pkg">underscore.string</span>
+        <span class="pill med">Medium</span>
+        <span class="cvss">CVSS 5.3</span>
+        <span class="spacer"></span>
+        <span class="cve"><span class="dot"></span>CVE pending</span>
+      </div>
+      <p class="desc"><b>Quadratic</b> backtracking in <code>stripTags()</code> on unclosed <code>&lt;</code> characters. Distinct from the earlier <code>unescapeHTML</code> issue (CVE-2017-16116) and unpatched in the latest release.</p>
+      <div class="meta">
+        <div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div>
+        <div class="m"><span class="k">Function</span><span class="v">stripTags()</span></div>
+        <div class="m"><span class="k">Affected</span><span class="v">≤ 3.3.6 (latest)</span></div>
+        <div class="m"><span class="k">Downloads</span><span class="v tnum">~4M / mo</span></div>
+      </div>
+    </article>
+
+    <article class="card sev-med">
+      <div class="top">
+        <span class="pkg">auth-header</span>
+        <span class="pill med">Medium</span>
+        <span class="cvss">CVSS 5.3</span>
+        <span class="spacer"></span>
+        <span class="cve"><span class="dot"></span>CVE pending</span>
+      </div>
+      <p class="desc"><b>Quadratic</b> backtracking while tokenizing HTTP <code>Authorization</code> / <code>WWW-Authenticate</code> headers. A ~160 KB header of space-separated tokens blocks the event loop for ~26 seconds.</p>
+      <div class="meta">
+        <div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div>
+        <div class="m"><span class="k">Function</span><span class="v">parse(header)</span></div>
+        <div class="m"><span class="k">Affected</span><span class="v">≤ 1.0.0 (latest)</span></div>
+        <div class="m"><span class="k">Downloads</span><span class="v tnum">~530K / mo</span></div>
+      </div>
+    </article>
+
+    <article class="card sev-med">
+      <div class="top">
+        <span class="pkg">configparser</span>
+        <span class="pill med">Medium</span>
+        <span class="cvss">CVSS 5.3</span>
+        <span class="spacer"></span>
+        <span class="cve"><span class="dot"></span>CVE pending</span>
+      </div>
+      <p class="desc"><b>Polynomial</b> backtracking in <code>read()</code> on a whitespace-heavy configuration line. An ~8 KB line blocks the event loop for ~88 seconds; reachable via attacker-controlled config files.</p>
+      <div class="meta">
+        <div class="m"><span class="k">Complexity</span><span class="v">O(n³) polynomial</span></div>
+        <div class="m"><span class="k">Function</span><span class="v">read(file)</span></div>
+        <div class="m"><span class="k">Affected</span><span class="v">≤ 0.3.10 (latest)</span></div>
+        <div class="m"><span class="k">Downloads</span><span class="v tnum">~132K / mo</span></div>
+      </div>
+    </article>
+  </div>
+
+  <div class="sec"><h2>Certifications</h2><span class="rule"></span><span class="count">Hack The Box</span></div>
+  <div class="certs">
+    <article class="cert">
+      <div class="badge">CPTS</div>
+      <div class="cbody">
+        <div class="ctitle">Certified Penetration Testing Specialist</div>
+        <div class="cissuer">Hack The Box · earned Jul 2026</div>
+        <div class="cid">ID · HTBCERT-8560F4D0B7</div>
+      </div>
+    </article>
+    <article class="cert">
+      <div class="badge alt">CWES</div>
+      <div class="cbody">
+        <div class="ctitle">Certified Web Exploitation Specialist</div>
+        <div class="cissuer">Hack The Box · earned Jun 2026</div>
+        <div class="cid">ID · HTBCERT-7FDA841FCA</div>
+      </div>
+    </article>
+  </div>
+
+  <div class="sec"><h2>Method</h2><span class="rule"></span></div>
+  <div class="panelblock">
+    <div class="method">
+      <div class="step"><div class="k">01 · Analyze</div><div class="t">Static extraction and classification of regex literals (recheck); source auditing for dangerous sinks — <span class="mono">eval</span>, <span class="mono">new&nbsp;Function</span>, unsafe deserialization.</div></div>
+      <div class="step"><div class="k">02 · Verify</div><div class="t">Every finding confirmed end-to-end through the package's public API with a working proof-of-concept and measured impact.</div></div>
+      <div class="step"><div class="k">03 · Confirm novelty</div><div class="t">Cross-checked against OSV.dev, the GitHub Advisory Database, and public search — no prior advisory for any finding.</div></div>
+      <div class="step"><div class="k">04 · Disclose</div><div class="t">Coordinated disclosure via MITRE, with a proposed fix for every issue. Code-execution findings reported maintainer-first.</div></div>
+    </div>
+    <p class="note">Research conducted against the researcher's own environments only. Proof-of-concept code is benign and demonstrates impact without harmful action. CVE identifiers are pending assignment and will be added on issuance.</p>
+  </div>
+
+  <footer>
+    <span class="who">Talatbek Urunov · Security Researcher</span>
+    <span class="links">
+      <a href="mailto:talatbekurinov303@gmail.com">email</a>
+      <a href="https://www.linkedin.com/in/talatbek-urunov-" target="_blank" rel="noopener">linkedin</a>
+      <a href="https://github.com/TalatbekUrunov" target="_blank" rel="noopener">github</a>
+    </span>
+  </footer>
+</div>
+
+<script>
+  (function(){
+    var btn=document.getElementById('tg');
+    function cur(){
+      var set=document.documentElement.getAttribute('data-theme');
+      if(set) return set;
+      return matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+    }
+    btn.addEventListener('click',function(){
+      var next=cur()==='dark'?'light':'dark';
+      document.documentElement.setAttribute('data-theme',next);
+    });
+  })();
+</script>

@@ -66,6 +66,15 @@
   .role b{color:var(--ink); font-weight:600}
   .role .tag{color:var(--accent); font-family:var(--mono); font-size:.92em}
 
+  .cta{display:flex; flex-wrap:wrap; gap:12px; margin-top:22px}
+  .btn{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.02em; text-decoration:none; padding:11px 18px; border-radius:10px; border:1px solid transparent; cursor:pointer; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease}
+  .btn.primary{color:#04120f; background:linear-gradient(120deg,var(--accent),var(--accent-2)); box-shadow:0 10px 30px -12px var(--accent)}
+  .btn.primary:hover{transform:translateY(-2px); box-shadow:0 16px 34px -12px var(--accent)}
+  .btn.ghost{color:var(--ink-soft); background:var(--glass); border-color:var(--line-2); backdrop-filter:blur(8px)}
+  .btn.ghost:hover{color:var(--ink); border-color:var(--accent); transform:translateY(-2px)}
+  .btn svg{width:15px; height:15px; flex:none}
+  @media (prefers-reduced-motion:reduce){ .btn:hover{transform:none} }
+
   .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:32px; background:var(--line); border:1px solid var(--line); border-radius:16px; overflow:hidden; backdrop-filter:blur(7px)}
   .stat{background:var(--glass); padding:18px 18px}
   .stat .n{font-family:var(--mono); font-size:clamp(22px,3vw,29px); font-weight:600; line-height:1; letter-spacing:-.01em}
@@ -175,6 +184,16 @@
     <p class="eyebrow"><span class="live"></span>Open-source vulnerability research</p>
     <h1>Talatbek Urunov<span class="cursor">_</span></h1>
     <p class="role">Independent security researcher · HTB-certified <span class="tag">(CPTS · CWES)</span>. Discovered <b>8 novel vulnerabilities</b> across widely-used npm packages — from arbitrary code execution to algorithmic denial of service — each verified with a working proof-of-concept, reported through coordinated disclosure, and shipped with a proposed fix.</p>
+    <div class="cta">
+      <a class="btn primary" href="Talatbek_Urunov_CV.pdf" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        Download CV
+      </a>
+      <a class="btn ghost" href="https://github.com/TalatbekUrunov" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.34.85 0 1.7.12 2.5.34 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg>
+        GitHub
+      </a>
+    </div>
     <div class="stats">
       <div class="stat acc"><div class="n tnum" data-to="8">0</div><div class="l">Novel findings</div></div>
       <div class="stat crit"><div class="n tnum" data-to="1">0</div><div class="l">Critical · 9.8</div></div>
@@ -347,6 +366,7 @@ fs.writeFileSync(<span class="st">'evil.ini'</span>, <span class="st">'[s]\nk ='
   <footer>
     <span class="who">Talatbek Urunov · Security Researcher</span>
     <span class="links">
+      <a href="Talatbek_Urunov_CV.pdf" download>cv · pdf</a>
       <a href="mailto:talatbekurinov303@gmail.com">email</a>
       <a href="https://www.linkedin.com/in/talatbek-urunov-" target="_blank" rel="noopener">linkedin</a>
       <a href="https://github.com/TalatbekUrunov" target="_blank" rel="noopener">github</a>

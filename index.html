@@ -115,6 +115,29 @@
   .m .k{font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--ink-faint)}
   .m .v{font-family:var(--mono); font-size:13px; color:var(--ink)}
 
+  /* expandable PoC / fix detail */
+  .poc{margin-top:14px; border-top:1px solid var(--line); position:relative}
+  .poc>summary{list-style:none; cursor:pointer; padding-top:13px; display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); user-select:none; transition:color .2s}
+  .poc>summary::-webkit-details-marker{display:none}
+  .poc>summary:hover{color:var(--accent)}
+  .poc>summary .chev{transition:transform .25s ease; font-size:9px; color:var(--accent)}
+  .poc[open]>summary .chev{transform:rotate(90deg)}
+  .poc[open]>summary{color:var(--accent)}
+  .pocbody{padding:14px 0 4px; display:grid; gap:14px}
+  .code{font-family:var(--mono); font-size:12.5px; line-height:1.65; color:var(--ink); background:var(--panel-2); border:1px solid var(--line); border-radius:9px; padding:13px 15px; overflow-x:auto; white-space:pre; position:relative}
+  .code .cm{color:var(--ink-faint)} .code .fn{color:var(--accent)} .code .st{color:var(--high)} .code .kw{color:var(--accent-2)}
+  .fix{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; color:var(--ink-soft); line-height:1.55}
+  .fix .lbl{flex:none; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); background:color-mix(in srgb,var(--accent) 12%, transparent); border:1px solid color-mix(in srgb,var(--accent) 40%, transparent); border-radius:5px; padding:3px 7px; margin-top:1px}
+  .fix b{color:var(--ink)} .fix code{font-family:var(--mono); font-size:.9em; color:var(--ink); background:var(--panel-2); padding:1px 5px; border-radius:4px; border:1px solid var(--line)}
+
+  /* toolkit chips */
+  .kit{display:flex; flex-wrap:wrap; gap:9px}
+  .chip{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); background:var(--glass); border:1px solid var(--line); border-radius:8px; padding:7px 12px; display:flex; align-items:center; gap:8px; backdrop-filter:blur(8px); transition:border-color .2s, color .2s, transform .2s}
+  .chip:hover{border-color:var(--accent); color:var(--ink); transform:translateY(-1px)}
+  .chip .d{width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); flex:none}
+  .kitgroup{margin-bottom:16px} .kitgroup:last-child{margin-bottom:0}
+  .kitgroup .gl{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--ink-faint); margin-bottom:10px}
+
   .certs{display:grid; grid-template-columns:1fr 1fr; gap:14px}
   @media (max-width:620px){ .certs{grid-template-columns:1fr} }
   .cert{display:flex; align-items:center; gap:18px; background:var(--glass); border:1px solid var(--line); border-radius:15px; padding:18px 20px; box-shadow:var(--shadow); backdrop-filter:blur(10px)}
@@ -174,11 +197,25 @@
       <div class="top"><span class="pkg">gray-matter</span><span class="pill crit">Critical</span><span class="cvss">CVSS 9.8</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc">Front-matter language is auto-detected from untrusted input and routed to an <code>eval</code> engine. A markdown document beginning <code>---js</code> executes arbitrary JavaScript in the host process — <b>no application opt-in required</b>. Full remote code execution from user-submitted content.</p>
       <div class="meta"><div class="m"><span class="k">Class</span><span class="v">CWE-94 · Code Injection</span></div><div class="m"><span class="k">Sink</span><span class="v">matter() → eval()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 4.0.3 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~30M / mo</span></div></div>
+      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
+        <div class="code"><span class="cm">// a document whose ---js front-matter runs on parse</span>
+<span class="kw">const</span> matter = <span class="fn">require</span>(<span class="st">'gray-matter'</span>);
+matter(<span class="st">'---js\n((function(){ return process.pid })())\n---'</span>);
+<span class="cm">// the front-matter body is handed straight to eval() — arbitrary JS executes</span></div>
+        <div class="fix"><span class="lbl">Fix</span><span>Never route untrusted front-matter through <code>eval</code>. Disable the <b>js</b> engine unless the host explicitly opts in, and document that <code>---js</code> is code execution, not data.</span></div>
+      </div></details>
     </article>
     <article class="card sev-high reveal">
       <div class="top"><span class="pkg">yaml-front-matter</span><span class="pill high">High</span><span class="cvss">CVSS 8.1</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc">The primary <code>loadFront()</code> API parses front-matter with js-yaml's unsafe full schema, enabling the <code>!!js/function</code> tag. Untrusted front-matter deserializes into callable JavaScript functions — code execution when the application invokes a front-matter value.</p>
       <div class="meta"><div class="m"><span class="k">Class</span><span class="v">CWE-502 · Deserialization</span></div><div class="m"><span class="k">Sink</span><span class="v">loadFront() → yaml.load</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 4.1.1 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~353K / mo</span></div></div>
+      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
+        <div class="code"><span class="cm">// !!js/function is honoured by the unsafe full schema</span>
+<span class="kw">const</span> { loadFront } = <span class="fn">require</span>(<span class="st">'yaml-front-matter'</span>);
+<span class="kw">const</span> doc = loadFront(<span class="st">'---\nfn: !!js/function "function(){ return 42 }"\n---'</span>);
+doc.fn();  <span class="cm">// => 42  — deserialized straight into a callable function</span></div>
+        <div class="fix"><span class="lbl">Fix</span><span>Parse with js-yaml's <code>DEFAULT_SAFE_SCHEMA</code> (<code>safeLoad</code>) instead of the full schema, so <code>!!js/function</code> and other code-bearing tags are rejected.</span></div>
+      </div></details>
     </article>
   </div>
 
@@ -188,32 +225,106 @@
       <div class="top"><span class="pkg">strip-comments</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Exponential</b> backtracking in the quoted-string regex (a latent <code>[^\1]</code> class bug). A ~65-byte input freezes the Node.js event loop for ~39 seconds; a few more bytes never returns.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(2ⁿ) exponential</span></div><div class="m"><span class="k">Function</span><span class="v">strip()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 2.0.1 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~36M / mo</span></div></div>
+      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
+        <div class="code"><span class="kw">const</span> strip = <span class="fn">require</span>(<span class="st">'strip-comments'</span>);
+<span class="cm">// ~65 bytes of unterminated quoted content — event loop frozen ~39 s</span>
+strip(<span class="st">'/*'</span> + <span class="st">'"'</span>.repeat(30) + <span class="st">'!'</span>);
+<span class="cm">// a few more chars and the call never returns</span></div>
+        <div class="fix"><span class="lbl">Fix</span><span>Replace the catastrophic <code>[^\1]</code>-style class in the quoted-string pattern with an explicit, non-backtracking scanner (or an atomic group), so match time stays linear in input length.</span></div>
+      </div></details>
     </article>
     <article class="card sev-med reveal">
       <div class="top"><span class="pkg">platform (platform.js)</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Quadratic</b> backtracking in the Android User-Agent regex of <code>parse()</code>. A crafted ~720 KB User-Agent blocks the event loop for ~22 seconds; reachable wherever User-Agent strings are parsed.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div><div class="m"><span class="k">Function</span><span class="v">parse(ua)</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 1.3.6 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~25M / mo</span></div></div>
+      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
+        <div class="code"><span class="kw">const</span> platform = <span class="fn">require</span>(<span class="st">'platform'</span>);
+<span class="cm">// crafted Android User-Agent, ~720 KB — event loop frozen ~22 s</span>
+<span class="kw">const</span> ua = <span class="st">'Mozilla/5.0 (Linux; Android '</span> + <span class="st">' '</span>.repeat(720000) + <span class="st">';)'</span>;
+platform.parse(ua);   <span class="cm">// reachable anywhere a UA header is parsed</span></div>
+        <div class="fix"><span class="lbl">Fix</span><span>Anchor and bound the Android segment of the UA regex (cap the repeated group), or pre-truncate User-Agent input to a sane length before parsing.</span></div>
+      </div></details>
     </article>
     <article class="card sev-med reveal">
       <div class="top"><span class="pkg">semver-utils</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Cubic</b> backtracking in <code>parseRange()</code> on a run of whitespace. ~4 KB of spaces blocks the event loop for ~19 seconds; a small payload for a large stall.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n³) cubic</span></div><div class="m"><span class="k">Function</span><span class="v">parseRange()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 1.1.4 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~2M / mo</span></div></div>
+      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
+        <div class="code"><span class="kw">const</span> semverUtils = <span class="fn">require</span>(<span class="st">'semver-utils'</span>);
+<span class="cm">// ~4 KB of whitespace — three nested optional groups → cubic blow-up, ~19 s</span>
+semverUtils.parseRange(<span class="st">' '</span>.repeat(4000) + <span class="st">'!'</span>);</div>
+        <div class="fix"><span class="lbl">Fix</span><span>Collapse leading/trailing whitespace before matching, and flatten the nested optional groups so the range pattern can't backtrack cubically.</span></div>
+      </div></details>
     </article>
     <article class="card sev-med reveal">
       <div class="top"><span class="pkg">underscore.string</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Quadratic</b> backtracking in <code>stripTags()</code> on unclosed <code>&lt;</code> characters. Distinct from the earlier <code>unescapeHTML</code> issue (CVE-2017-16116) and unpatched in the latest release.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div><div class="m"><span class="k">Function</span><span class="v">stripTags()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 3.3.6 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~4M / mo</span></div></div>
+      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
+        <div class="code"><span class="kw">const</span> s = <span class="fn">require</span>(<span class="st">'underscore.string'</span>);
+<span class="cm">// a long run of unclosed '&lt;' — quadratic backtracking in the tag regex</span>
+s.stripTags(<span class="st">'&lt;'</span>.repeat(160000));   <span class="cm">// ~11.5 s for ~160 K chars</span></div>
+        <div class="fix"><span class="lbl">Fix</span><span>Match tags with a tempered pattern (<code>&lt;[^&gt;]*&gt;</code>) or a single linear scan instead of a backtracking greedy group — and note this is <b>distinct</b> from CVE-2017-16116 (<code>unescapeHTML</code>), still unpatched.</span></div>
+      </div></details>
     </article>
     <article class="card sev-med reveal">
       <div class="top"><span class="pkg">auth-header</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Quadratic</b> backtracking while tokenizing HTTP <code>Authorization</code> / <code>WWW-Authenticate</code> headers. A ~160 KB header of space-separated tokens blocks the event loop for ~26 seconds.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div><div class="m"><span class="k">Function</span><span class="v">parse(header)</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 1.0.0 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~530K / mo</span></div></div>
+      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
+        <div class="code"><span class="kw">const</span> auth = <span class="fn">require</span>(<span class="st">'auth-header'</span>);
+<span class="cm">// ~160 KB Authorization header of space-separated tokens — ~26 s</span>
+auth.parse(<span class="st">'Bearer '</span> + <span class="st">'a '</span>.repeat(80000));</div>
+        <div class="fix"><span class="lbl">Fix</span><span>Tokenize the header with a linear split rather than a backtracking regex, and cap header length before parsing (attacker controls the <code>Authorization</code> / <code>WWW-Authenticate</code> value).</span></div>
+      </div></details>
     </article>
     <article class="card sev-med reveal">
       <div class="top"><span class="pkg">configparser</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
       <p class="desc"><b>Polynomial</b> backtracking in <code>read()</code> on a whitespace-heavy configuration line. An ~8 KB line blocks the event loop for ~88 seconds; reachable via attacker-controlled config files.</p>
       <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n³) polynomial</span></div><div class="m"><span class="k">Function</span><span class="v">read(file)</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 0.3.10 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~132K / mo</span></div></div>
+      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
+        <div class="code"><span class="kw">const</span> { ConfigParser } = <span class="fn">require</span>(<span class="st">'configparser'</span>);
+<span class="cm">// a single ~8 KB whitespace-heavy line freezes read() for ~88 s</span>
+fs.writeFileSync(<span class="st">'evil.ini'</span>, <span class="st">'[s]\nk ='</span> + <span class="st">' '</span>.repeat(8000) + <span class="st">'!'</span>);
+<span class="kw">new</span> ConfigParser().read(<span class="st">'evil.ini'</span>);   <span class="cm">// reachable via attacker-supplied config</span></div>
+        <div class="fix"><span class="lbl">Fix</span><span>Trim each line before applying the key/value pattern, and rewrite the section/option regex so the whitespace groups can't overlap and backtrack.</span></div>
+      </div></details>
     </article>
+  </div>
+
+  <div class="sec"><h2>Toolkit</h2><span class="rule"></span><span class="count">Research stack</span></div>
+  <div class="panelblock reveal">
+    <div class="kitgroup">
+      <div class="gl">Discovery &amp; analysis</div>
+      <div class="kit">
+        <span class="chip"><span class="d"></span>recheck</span>
+        <span class="chip"><span class="d"></span>Static regex extraction</span>
+        <span class="chip"><span class="d"></span>AST source auditing</span>
+        <span class="chip"><span class="d"></span>Sink tracing · eval / Function</span>
+        <span class="chip"><span class="d"></span>Node.js event-loop profiling</span>
+      </div>
+    </div>
+    <div class="kitgroup">
+      <div class="gl">Verification &amp; disclosure</div>
+      <div class="kit">
+        <span class="chip"><span class="d"></span>End-to-end PoC harness</span>
+        <span class="chip"><span class="d"></span>OSV.dev novelty checks</span>
+        <span class="chip"><span class="d"></span>GitHub Advisory DB</span>
+        <span class="chip"><span class="d"></span>MITRE CVE request</span>
+        <span class="chip"><span class="d"></span>CVSS 3.1 scoring</span>
+        <span class="chip"><span class="d"></span>Coordinated disclosure</span>
+      </div>
+    </div>
+    <div class="kitgroup">
+      <div class="gl">Offensive security</div>
+      <div class="kit">
+        <span class="chip"><span class="d"></span>Web exploitation</span>
+        <span class="chip"><span class="d"></span>Penetration testing</span>
+        <span class="chip"><span class="d"></span>Burp Suite</span>
+        <span class="chip"><span class="d"></span>Active Directory</span>
+        <span class="chip"><span class="d"></span>JavaScript / Node.js internals</span>
+      </div>
+    </div>
   </div>
 
   <div class="sec"><h2>Certifications</h2><span class="rule"></span><span class="count">Hack The Box</span></div>

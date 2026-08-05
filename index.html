@@ -1,505 +1,396 @@
-<title>Talatbek Urunov — Security Research</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>talatbek@research — Vulnerability Research</title>
+<meta name="description" content="Security researcher. Eight novel vulnerabilities in widely-used npm packages, verified and disclosed.">
 <style>
   :root{
-    --bg:#070a0f; --bg2:#0a0f17; --panel:#0f1620; --panel-2:#0c121b; --line:#1b2431; --line-2:#2b3a4d;
-    --ink:#dbe4f0; --ink-soft:#95a4b8; --ink-faint:#647085;
-    --accent:#3ce6d1; --accent-2:#4d8cff;
-    --crit:#ff5a63; --high:#ff9d42; --med:#f2c14e;
-    --crit-bg:rgba(255,90,99,.12); --high-bg:rgba(255,157,66,.12); --med-bg:rgba(242,193,78,.12);
-    --net:60,230,209;
-    --shadow:0 1px 0 rgba(255,255,255,.03), 0 26px 54px -30px rgba(0,0,0,.85);
-    --glass:rgba(14,21,31,.66);
-    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
-    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --bg:#070a07; --panel:rgba(9,13,9,.82); --line:#17251a; --line-2:#26382a;
+    --ph:#3ef07f;            /* phosphor */
+    --ph-dim:#2a9d55; --ph-deep:#177a3a;
+    --txt:#bfe6c7; --txt-dim:#6f8a76; --comment:#48604e;
+    --red:#ff5f56; --amber:#ffb454; --yellow:#e8c65a; --cyan:#57d6df;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
   }
-  @media (prefers-color-scheme:light){
-    :root:not([data-theme]){
-      --bg:#eceff4; --bg2:#e4eaf1; --panel:#ffffff; --panel-2:#f2f6fa; --line:#dfe5ee; --line-2:#c9d3df;
-      --ink:#111c2a; --ink-soft:#44526580; --ink-soft:#465469; --ink-faint:#78859a;
-      --accent:#0c9b8a; --accent-2:#2f6be0; --net:12,155,138;
-      --crit:#d5282f; --high:#bd6410; --med:#977100;
-      --crit-bg:rgba(213,40,47,.08); --high-bg:rgba(189,100,16,.08); --med-bg:rgba(151,113,0,.09);
-      --glass:rgba(255,255,255,.74);
-      --shadow:0 1px 2px rgba(16,32,48,.05), 0 18px 42px -28px rgba(16,32,48,.32);
-    }
-  }
-  :root[data-theme="light"]{
-    --bg:#eceff4; --bg2:#e4eaf1; --panel:#ffffff; --panel-2:#f2f6fa; --line:#dfe5ee; --line-2:#c9d3df;
-    --ink:#111c2a; --ink-soft:#465469; --ink-faint:#78859a;
-    --accent:#0c9b8a; --accent-2:#2f6be0; --net:12,155,138;
-    --crit:#d5282f; --high:#bd6410; --med:#977100;
-    --crit-bg:rgba(213,40,47,.08); --high-bg:rgba(189,100,16,.08); --med-bg:rgba(151,113,0,.09);
-    --glass:rgba(255,255,255,.74);
-    --shadow:0 1px 2px rgba(16,32,48,.05), 0 18px 42px -28px rgba(16,32,48,.32);
-  }
-  :root[data-theme="dark"]{
-    --bg:#070a0f; --bg2:#0a0f17; --panel:#0f1620; --panel-2:#0c121b; --line:#1b2431; --line-2:#2b3a4d;
-    --ink:#dbe4f0; --ink-soft:#95a4b8; --ink-faint:#647085;
-    --accent:#3ce6d1; --accent-2:#4d8cff; --net:60,230,209;
-    --crit:#ff5a63; --high:#ff9d42; --med:#f2c14e;
-    --crit-bg:rgba(255,90,99,.12); --high-bg:rgba(255,157,66,.12); --med-bg:rgba(242,193,78,.12);
-    --glass:rgba(14,21,31,.66);
-    --shadow:0 1px 0 rgba(255,255,255,.03), 0 26px 54px -30px rgba(0,0,0,.85);
-  }
+  :root[data-theme="amber"]{ --ph:#ffb454; --ph-dim:#c07f2a; --ph-deep:#8a5a15; --txt:#ecd9b8; --txt-dim:#8a7a5c; --comment:#5f5238; --cyan:#e8c65a; }
 
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.55; -webkit-font-smoothing:antialiased; min-height:100vh; overflow-x:hidden}
-  #net{position:fixed; inset:0; width:100%; height:100%; z-index:0; display:block}
-  .vignette{position:fixed; inset:0; z-index:1; pointer-events:none;
-    background:radial-gradient(120% 90% at 50% -10%, transparent 40%, var(--bg) 100%);}
-  .wrap{position:relative; z-index:2; max-width:1060px; margin:0 auto; padding:clamp(24px,4vw,64px) clamp(16px,4vw,40px) 84px}
-  .mono{font-family:var(--mono)} .tnum{font-variant-numeric:tabular-nums}
+  body{background:var(--bg); color:var(--txt); font-family:var(--mono); font-size:14px; line-height:1.6; -webkit-font-smoothing:antialiased; min-height:100vh; overflow-x:hidden}
+  ::selection{background:var(--ph); color:#04120a}
+  canvas#matrix{position:fixed; inset:0; width:100%; height:100%; z-index:0; opacity:.32}
+  .scan{position:fixed; inset:0; z-index:3; pointer-events:none; background:repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.14) 2px 3px); mix-blend-mode:multiply; opacity:.5}
+  .vig{position:fixed; inset:0; z-index:2; pointer-events:none; background:radial-gradient(130% 100% at 50% 0%, transparent 45%, rgba(3,5,3,.9) 100%)}
 
-  header{margin-bottom:34px}
-  .eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--accent); margin:0 0 20px; display:flex; align-items:center; gap:11px}
-  .eyebrow .live{width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 0 var(--accent); animation:pulse 2.4s ease-out infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(60,230,209,.5)}70%{box-shadow:0 0 0 9px rgba(60,230,209,0)}100%{box-shadow:0 0 0 0 rgba(60,230,209,0)}}
-  h1{font-family:var(--mono); font-weight:600; letter-spacing:.004em; font-size:clamp(32px,6vw,58px); line-height:1.0; margin:0 0 16px; text-wrap:balance;
-     background:linear-gradient(100deg,var(--ink) 30%,var(--accent) 62%,var(--accent-2) 86%,var(--ink) 100%);
-     background-size:220% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:sheen 9s ease-in-out infinite}
-  @keyframes sheen{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
-  h1 .cursor{-webkit-text-fill-color:var(--accent); animation:blink 1.15s step-end infinite}
-  @keyframes blink{50%{opacity:0}}
-  .role{color:var(--ink-soft); font-size:clamp(15px,2.2vw,17px); max-width:62ch; margin:0}
-  .role b{color:var(--ink); font-weight:600}
-  .role .tag{color:var(--accent); font-family:var(--mono); font-size:.92em}
+  a{color:var(--cyan); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  .glow{text-shadow:0 0 8px color-mix(in srgb,var(--ph) 55%, transparent)}
 
-  .cta{display:flex; flex-wrap:wrap; gap:12px; margin-top:22px}
-  .btn{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.02em; text-decoration:none; padding:11px 18px; border-radius:10px; border:1px solid transparent; cursor:pointer; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease}
-  .btn.primary{color:#04120f; background:linear-gradient(120deg,var(--accent),var(--accent-2)); box-shadow:0 10px 30px -12px var(--accent)}
-  .btn.primary:hover{transform:translateY(-2px); box-shadow:0 16px 34px -12px var(--accent)}
-  .btn.ghost{color:var(--ink-soft); background:var(--glass); border-color:var(--line-2); backdrop-filter:blur(8px)}
-  .btn.ghost:hover{color:var(--ink); border-color:var(--accent); transform:translateY(-2px)}
-  .btn svg{width:15px; height:15px; flex:none}
-  @media (prefers-reduced-motion:reduce){ .btn:hover{transform:none} }
+  /* terminal window */
+  .term{position:relative; z-index:4; max-width:920px; margin:26px auto 60px; background:var(--panel); border:1px solid var(--line-2); border-radius:10px; box-shadow:0 0 0 1px rgba(62,240,127,.06), 0 30px 80px -30px rgba(0,0,0,.9), 0 0 90px -40px color-mix(in srgb,var(--ph) 40%, transparent); backdrop-filter:blur(3px); overflow:hidden}
+  .bar{position:sticky; top:0; z-index:6; display:flex; align-items:center; gap:12px; padding:10px 15px; background:linear-gradient(180deg, rgba(20,30,22,.96), rgba(12,19,13,.96)); border-bottom:1px solid var(--line-2)}
+  .lights{display:flex; gap:7px}
+  .lights i{width:12px; height:12px; border-radius:50%; display:block}
+  .lights .r{background:#ff5f56} .lights .y{background:#ffbd2e} .lights .g{background:#27c93f}
+  .bar .ttl{flex:1; text-align:center; font-size:12.5px; color:var(--txt-dim); letter-spacing:.02em}
+  .bar .ttl b{color:var(--ph)}
+  .bar .tg{font-size:11px; color:var(--txt-dim); background:none; border:1px solid var(--line-2); border-radius:5px; padding:3px 9px; cursor:pointer; font-family:var(--mono)}
+  .bar .tg:hover{color:var(--ph); border-color:var(--ph-deep)}
 
-  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:32px; background:var(--line); border:1px solid var(--line); border-radius:16px; overflow:hidden; backdrop-filter:blur(7px)}
-  .stat{background:var(--glass); padding:18px 18px}
-  .stat .n{font-family:var(--mono); font-size:clamp(22px,3vw,29px); font-weight:600; line-height:1; letter-spacing:-.01em}
-  .stat .l{font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.13em; margin-top:10px}
-  .stat.crit .n{color:var(--crit)} .stat.high .n{color:var(--high)} .stat.acc .n{color:var(--accent)}
-  @media (max-width:620px){ .stats{grid-template-columns:repeat(2,1fr)} }
+  .screen{padding:clamp(18px,3vw,34px) clamp(15px,3vw,32px) clamp(30px,4vw,44px)}
 
-  /* severity distribution bar */
-  .threat{margin-top:16px; display:flex; align-items:center; gap:14px}
-  .threat .bar{flex:1; height:8px; border-radius:999px; overflow:hidden; display:flex; background:var(--panel-2); border:1px solid var(--line)}
-  .threat .seg{height:100%; transform:scaleX(0); transform-origin:left; animation:grow 1s .3s cubic-bezier(.2,.8,.2,1) forwards}
-  .threat .seg.c{background:var(--crit)} .threat .seg.h{background:var(--high)} .threat .seg.m{background:var(--med)}
-  @keyframes grow{to{transform:scaleX(1)}}
-  .threat .lg{font-family:var(--mono); font-size:11px; color:var(--ink-faint); white-space:nowrap; letter-spacing:.04em}
-  .threat .lg b{color:var(--ink-soft); font-weight:600}
+  .cmd{color:var(--txt-dim)}
+  .cmd .pr{color:var(--ph); font-weight:600}
+  .cmd .pr .u{color:var(--cyan)} .cmd .pr .p{color:var(--txt-dim)}
+  .cmd .in{color:var(--txt)}
+  .out{margin:4px 0 26px}
+  .cur{display:inline-block; width:8px; height:1.05em; background:var(--ph); vertical-align:-2px; margin-left:3px; box-shadow:0 0 8px var(--ph); animation:bl 1.1s step-end infinite}
+  @keyframes bl{50%{opacity:0}}
 
-  .sec{display:flex; align-items:baseline; gap:14px; margin:44px 0 18px}
-  .sec h2{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); margin:0}
-  .sec .rule{flex:1; height:1px; background:linear-gradient(90deg,var(--line-2),transparent)}
-  .sec .count{font-family:var(--mono); font-size:12px; color:var(--ink-faint)}
+  h1{font-size:clamp(30px,7.5vw,64px); line-height:1.02; margin:8px 0 6px; font-weight:700; letter-spacing:.01em; color:var(--ph)}
+  .sub{color:var(--txt-dim); font-size:clamp(13px,2vw,15px)}
+  .sub b{color:var(--txt)} .sub .hl{color:var(--cyan)}
+  .lede{color:var(--txt); max-width:74ch; margin:2px 0 0} .lede b{color:var(--ph); font-weight:600}
 
-  .list{display:flex; flex-direction:column; gap:14px}
-  .reveal{opacity:0; transform:translateY(16px)}
-  .reveal.in{opacity:1; transform:none; transition:opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1)}
-  .card{position:relative; background:var(--glass); border:1px solid var(--line); border-radius:15px; padding:20px 22px 20px 26px; box-shadow:var(--shadow); overflow:hidden; backdrop-filter:blur(10px)}
-  .card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--sev); box-shadow:0 0 18px var(--sev)}
-  .card::after{content:""; position:absolute; inset:0; background:radial-gradient(600px 200px at 0% 0%, color-mix(in srgb,var(--sev) 9%, transparent), transparent 60%); opacity:0; transition:opacity .3s; pointer-events:none}
-  .card:hover::after{opacity:1}
-  .card.sev-crit{--sev:var(--crit)} .card.sev-high{--sev:var(--high)} .card.sev-med{--sev:var(--med)}
-  .card.sev-crit{border-color:color-mix(in srgb, var(--crit) 34%, var(--line))}
+  .kv{margin-top:14px; display:grid; grid-template-columns:max-content 1fr; gap:2px 18px; font-size:13.5px}
+  .kv .k{color:var(--comment)} .kv .v{color:var(--txt)}
+  .kv .v .n{color:var(--ph); font-weight:600} .kv .v .rd{color:var(--red); font-weight:600}
 
-  .top{display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; margin-bottom:12px; position:relative}
-  .pkg{font-family:var(--mono); font-size:16px; font-weight:600; color:var(--ink); letter-spacing:-.01em}
-  .pill{font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:999px; border:1px solid transparent; white-space:nowrap}
-  .pill.crit{color:var(--crit); background:var(--crit-bg); border-color:var(--crit)}
-  .pill.high{color:var(--high); background:var(--high-bg); border-color:var(--high)}
-  .pill.med{color:var(--med); background:var(--med-bg); border-color:var(--med)}
-  .cvss{font-family:var(--mono); font-size:12px; color:var(--ink-soft); background:var(--panel-2); border:1px solid var(--line); padding:2px 8px; border-radius:6px}
-  .spacer{flex:1}
-  .cve{font-family:var(--mono); font-size:12px; color:var(--ink-faint)}
-  .cve .dot{display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-right:6px; vertical-align:middle; box-shadow:0 0 7px var(--accent)}
-  .desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 14px; max-width:74ch; position:relative}
-  .desc code{font-family:var(--mono); font-size:.9em; color:var(--ink); background:var(--panel-2); padding:1px 5px; border-radius:4px; border:1px solid var(--line)}
-  .desc b{color:var(--ink)}
-  .meta{display:flex; flex-wrap:wrap; gap:9px 22px; padding-top:12px; border-top:1px solid var(--line); position:relative}
-  .m{display:flex; flex-direction:column; gap:3px}
-  .m .k{font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--ink-faint)}
-  .m .v{font-family:var(--mono); font-size:13px; color:var(--ink)}
+  .run{display:inline-flex; align-items:center; gap:9px; margin-top:20px; font-family:var(--mono); font-size:13.5px; color:#04120a; background:var(--ph); border:0; border-radius:6px; padding:9px 15px; font-weight:600; text-decoration:none; box-shadow:0 0 22px -6px var(--ph); transition:transform .15s, box-shadow .15s}
+  .run:hover{transform:translateY(-1px); box-shadow:0 0 30px -4px var(--ph); text-decoration:none}
+  .run svg{width:15px; height:15px}
 
-  /* expandable PoC / fix detail */
-  .poc{margin-top:14px; border-top:1px solid var(--line); position:relative}
-  .poc>summary{list-style:none; cursor:pointer; padding-top:13px; display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); user-select:none; transition:color .2s}
-  .poc>summary::-webkit-details-marker{display:none}
-  .poc>summary:hover{color:var(--accent)}
-  .poc>summary .chev{transition:transform .25s ease; font-size:9px; color:var(--accent)}
-  .poc[open]>summary .chev{transform:rotate(90deg)}
-  .poc[open]>summary{color:var(--accent)}
-  .pocbody{padding:14px 0 4px; display:grid; gap:14px}
-  .code{font-family:var(--mono); font-size:12.5px; line-height:1.65; color:var(--ink); background:var(--panel-2); border:1px solid var(--line); border-radius:9px; padding:13px 15px; overflow-x:auto; white-space:pre; position:relative}
-  .code .cm{color:var(--ink-faint)} .code .fn{color:var(--accent)} .code .st{color:var(--high)} .code .kw{color:var(--accent-2)}
-  .fix{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; color:var(--ink-soft); line-height:1.55}
-  .fix .lbl{flex:none; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); background:color-mix(in srgb,var(--accent) 12%, transparent); border:1px solid color-mix(in srgb,var(--accent) 40%, transparent); border-radius:5px; padding:3px 7px; margin-top:1px}
-  .fix b{color:var(--ink)} .fix code{font-family:var(--mono); font-size:.9em; color:var(--ink); background:var(--panel-2); padding:1px 5px; border-radius:4px; border:1px solid var(--line)}
+  /* section prompt */
+  .sec{margin:40px 0 14px}
+  .sec .cmd{font-size:14px}
 
-  /* disclosure timeline */
-  .timeline{position:relative; padding-left:4px}
-  .timeline::before{content:""; position:absolute; left:9px; top:6px; bottom:10px; width:2px; background:linear-gradient(180deg,var(--accent),var(--accent-2) 55%,var(--line-2))}
-  .tl{position:relative; padding:0 0 22px 34px}
-  .tl:last-child{padding-bottom:2px}
-  .tl .dot{position:absolute; left:2px; top:2px; width:16px; height:16px; border-radius:50%; background:var(--panel); border:2px solid var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%, transparent)}
-  .tl.done .dot{background:var(--accent); box-shadow:0 0 12px var(--accent), 0 0 0 4px color-mix(in srgb,var(--accent) 14%, transparent)}
-  .tl.pending .dot{border-color:var(--med); border-style:dashed; box-shadow:0 0 0 4px color-mix(in srgb,var(--med) 12%, transparent); animation:tlpulse 2.4s ease-out infinite}
-  @keyframes tlpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--med) 40%,transparent)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
-  .tl .when{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:3px}
-  .tl.pending .when{color:var(--med)}
-  .tl .head{font-size:14.5px; font-weight:600; color:var(--ink); margin-bottom:4px}
-  .tl .body{font-size:13.5px; color:var(--ink-soft); line-height:1.5; max-width:70ch}
-  .tl .body code{font-family:var(--mono); font-size:.88em; color:var(--ink); background:var(--panel-2); padding:1px 5px; border-radius:4px; border:1px solid var(--line)}
-  .tl .body b{color:var(--ink)}
+  /* findings listing (ls output) */
+  .ls{width:100%; border-collapse:collapse; font-size:13px; margin-bottom:8px; display:block; overflow-x:auto}
+  .ls table{width:100%; border-collapse:collapse; min-width:560px}
+  .ls td{padding:4px 14px 4px 0; white-space:nowrap; border-bottom:1px dotted var(--line)}
+  .ls tr:last-child td{border-bottom:0}
+  .ls .perm{color:var(--comment)} .ls .fn{color:var(--cyan)} .ls .fn a{color:var(--cyan)}
+  .ls .sz{color:var(--txt-dim); text-align:right}
+  .tag{font-weight:600} .tag.crit{color:var(--red)} .tag.high{color:var(--amber)} .tag.med{color:var(--yellow)}
 
-  /* toolkit chips */
-  .kit{display:flex; flex-wrap:wrap; gap:9px}
-  .chip{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); background:var(--glass); border:1px solid var(--line); border-radius:8px; padding:7px 12px; display:flex; align-items:center; gap:8px; backdrop-filter:blur(8px); transition:border-color .2s, color .2s, transform .2s}
-  .chip:hover{border-color:var(--accent); color:var(--ink); transform:translateY(-1px)}
-  .chip .d{width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); flex:none}
-  .kitgroup{margin-bottom:16px} .kitgroup:last-child{margin-bottom:0}
-  .kitgroup .gl{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--ink-faint); margin-bottom:10px}
+  /* finding entries */
+  .fnd{border-left:2px solid var(--line-2); padding:0 0 4px 16px; margin:22px 0}
+  .fnd.crit{border-color:var(--red)} .fnd.high{border-color:var(--amber)} .fnd.med{border-color:var(--yellow)}
+  .fnd .cmd{font-size:13.5px; margin-bottom:8px}
+  .fhead{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 12px}
+  .fhead .pkg{font-size:17px; font-weight:700; color:var(--ph)}
+  .fnd.crit .pkg{color:#ff8079} .fnd.high .pkg{color:var(--amber)}
+  .fhead .sv{font-size:12px; font-weight:600}
+  .fhead .sv.crit{color:var(--red)} .fhead .sv.high{color:var(--amber)} .fhead .sv.med{color:var(--yellow)}
+  .fhead .cve{margin-left:auto; font-size:12px; color:var(--comment)}
+  .meta{font-size:12.5px; color:var(--txt-dim); margin:7px 0 9px}
+  .meta .k{color:var(--comment)}
+  .meta span:not(:last-child)::after{content:" \00b7 "; color:var(--line-2)}
+  .desc{font-size:14px; color:var(--txt); max-width:74ch; margin:0}
+  .desc b{color:var(--ph)} .desc code{color:var(--cyan)}
 
-  .certs{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-  @media (max-width:620px){ .certs{grid-template-columns:1fr} }
-  .cert{display:flex; align-items:center; gap:18px; background:var(--glass); border:1px solid var(--line); border-radius:15px; padding:18px 20px; box-shadow:var(--shadow); backdrop-filter:blur(10px)}
-  .badge{flex:none; width:66px; height:66px; border-radius:13px; display:grid; place-items:center; font-family:var(--mono); font-weight:700; font-size:16px; letter-spacing:.04em; color:#c9b6ff; background:rgba(139,109,246,.14); border:1px solid rgba(139,109,246,.5); box-shadow:0 0 24px -6px rgba(139,109,246,.4) inset}
-  .badge.alt{color:#ff9384; background:rgba(240,98,92,.13); border-color:rgba(240,98,92,.5); box-shadow:0 0 24px -6px rgba(240,98,92,.4) inset}
-  .ctitle{font-size:14.5px; font-weight:600; color:var(--ink); line-height:1.3}
-  .cissuer{font-size:12.5px; color:var(--ink-soft); margin-top:4px}
-  .cid{font-family:var(--mono); font-size:11px; color:var(--ink-faint); margin-top:7px}
+  details.poc{margin-top:12px; max-width:78ch}
+  details.poc>summary{list-style:none; cursor:pointer; font-size:12.5px; color:var(--txt-dim); padding:2px 0; user-select:none}
+  details.poc>summary::-webkit-details-marker{display:none}
+  details.poc>summary:hover{color:var(--ph)}
+  details.poc>summary::before{content:"┌─ show proof-of-concept ─[ + ]"; color:var(--ph-dim)}
+  details.poc[open]>summary::before{content:"└─ hide proof-of-concept ─[ − ]"; color:var(--ph)}
+  .pocbody{margin-top:10px; display:grid; gap:12px}
+  pre.code{margin:0; font-size:12.5px; line-height:1.7; color:var(--txt); background:rgba(3,7,4,.6); border:1px solid var(--line); border-left:2px solid var(--ph-deep); border-radius:6px; padding:12px 14px; overflow-x:auto}
+  pre.code .cm{color:var(--comment)} pre.code .st{color:var(--amber)} pre.code .kw{color:var(--ph)} pre.code .pr{color:var(--ph-dim)}
+  .fix{font-size:13.5px; color:var(--txt-dim); line-height:1.55; padding-left:14px; border-left:2px solid var(--line-2); max-width:76ch}
+  .fix .lbl{color:var(--ph); font-weight:600} .fix b{color:var(--txt)} .fix code{color:var(--cyan)}
 
-  .panelblock{background:var(--glass); border:1px solid var(--line); border-radius:15px; padding:24px; backdrop-filter:blur(10px)}
-  .method{display:grid; grid-template-columns:repeat(4,1fr); gap:22px}
-  @media (max-width:720px){ .method{grid-template-columns:repeat(2,1fr)} }
-  .step .k{font-family:var(--mono); font-size:12px; color:var(--accent); margin-bottom:6px}
-  .step .t{font-size:13.5px; color:var(--ink-soft); line-height:1.5}
-  .note{font-size:12px; color:var(--ink-faint); margin-top:16px; line-height:1.5}
-  footer{margin-top:36px; padding-top:24px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:16px 28px; align-items:center; justify-content:space-between}
-  footer .who{font-family:var(--mono); font-size:13px; color:var(--ink)}
-  footer .links{display:flex; gap:18px; flex-wrap:wrap}
-  footer a{color:var(--accent); text-decoration:none; font-family:var(--mono); font-size:13px}
-  footer a:hover{text-decoration:underline}
+  /* generic two-col */
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:26px}
+  @media (max-width:620px){ .grid2{grid-template-columns:1fr; gap:20px} }
+  .cert{margin-bottom:14px}
+  .cert .t{color:var(--txt); font-weight:600; font-size:14px}
+  .cert .i{color:var(--txt-dim); font-size:12.5px; margin-top:1px}
+  .cert .id{color:var(--comment); font-size:11.5px; margin-top:3px}
+  ul.hi{list-style:none; margin:0; padding:0}
+  ul.hi li{font-size:13.5px; color:var(--txt-dim); padding-left:16px; position:relative; margin-bottom:9px; line-height:1.5}
+  ul.hi li::before{content:"›"; position:absolute; left:0; color:var(--ph)}
+  ul.hi b{color:var(--txt)}
 
-  .toggle{position:fixed; top:16px; right:16px; z-index:6; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; background:var(--glass); color:var(--ink-soft); border:1px solid var(--line-2); border-radius:999px; padding:7px 13px; cursor:pointer; backdrop-filter:blur(8px)}
-  .toggle:hover{color:var(--ink); border-color:var(--accent)}
-  .toggle:focus-visible, a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
-  @media (prefers-reduced-motion:no-preference){ .card{transition:border-color .2s ease, transform .2s ease} .card:hover{border-color:var(--line-2); transform:translateY(-2px)} }
-  @media (prefers-reduced-motion:reduce){ .reveal{opacity:1; transform:none} h1{animation:none} .threat .seg{animation:none; transform:none} }
+  /* git log timeline */
+  .log{border-left:2px solid var(--line-2); margin-left:6px; padding-left:20px}
+  .commit{position:relative; padding-bottom:18px}
+  .commit::before{content:""; position:absolute; left:-27px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--bg); border:2px solid var(--ph)}
+  .commit.wait::before{border-color:var(--yellow); border-style:dashed}
+  .commit .h{font-size:13px; color:var(--amber)} .commit .h .d{color:var(--comment); margin-left:8px}
+  .commit .m{font-size:14px; color:var(--txt); font-weight:600; margin:2px 0 2px}
+  .commit.wait .m::after{content:" (pending)"; color:var(--yellow); font-weight:400; font-size:12px}
+  .commit .b{font-size:13px; color:var(--txt-dim); max-width:70ch; line-height:1.5}
+  .commit .b code{color:var(--cyan)}
+
+  /* toolkit */
+  .tk{font-size:13.5px; margin-bottom:12px}
+  .tk .k{color:var(--comment)}
+  .tk .v span{color:var(--txt)} .tk .v span:not(:last-child)::after{content:"  "; }
+  .tk .v span::before{content:"["; color:var(--ph-dim)} .tk .v span::after{content:"] "; color:var(--ph-dim)}
+
+  footer{margin-top:38px; padding-top:18px; border-top:1px solid var(--line)}
+  footer .cmd{margin-bottom:8px}
+  footer .lk{display:flex; flex-wrap:wrap; gap:6px 20px; font-size:13.5px}
+  footer .note{font-size:11.5px; color:var(--comment); margin-top:14px; max-width:80ch; line-height:1.6}
+
+  @media (prefers-reduced-motion:reduce){ .cur{animation:none} }
 </style>
+</head>
+<body>
 
-<canvas id="net" aria-hidden="true"></canvas>
-<div class="vignette" aria-hidden="true"></div>
-<button class="toggle" id="tg" aria-label="Toggle colour theme">◐ theme</button>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+  <div class="vig" aria-hidden="true"></div>
+  <div class="scan" aria-hidden="true"></div>
 
-<div class="wrap">
-  <header>
-    <p class="eyebrow"><span class="live"></span>Open-source vulnerability research</p>
-    <h1>Talatbek Urunov<span class="cursor">_</span></h1>
-    <p class="role">Independent security researcher · HTB-certified <span class="tag">(CPTS · CWES)</span>. Discovered <b>8 novel vulnerabilities</b> across widely-used npm packages — from arbitrary code execution to algorithmic denial of service — each verified with a working proof-of-concept, reported through coordinated disclosure, and shipped with a proposed fix.</p>
-    <div class="cta">
-      <a class="btn primary" href="Talatbek_Urunov_CV.pdf" download>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
-        Download CV
-      </a>
-      <a class="btn ghost" href="https://github.com/TalatbekUrunov" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.34.85 0 1.7.12 2.5.34 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg>
-        GitHub
-      </a>
+  <main class="term">
+    <div class="bar">
+      <div class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+      <div class="ttl"><b>talatbek</b>@research: ~/vulnerability-research</div>
+      <button class="tg" id="tg" aria-label="Toggle phosphor colour">phosphor</button>
     </div>
-    <div class="stats">
-      <div class="stat acc"><div class="n tnum" data-to="8">0</div><div class="l">Novel findings</div></div>
-      <div class="stat crit"><div class="n tnum" data-to="1">0</div><div class="l">Critical · 9.8</div></div>
-      <div class="stat high"><div class="n tnum" data-to="1">0</div><div class="l">High · 8.1</div></div>
-      <div class="stat"><div class="n tnum" data-suffix="M" data-prefix="~" data-to="98">0</div><div class="l">Monthly downloads</div></div>
-    </div>
-    <div class="threat">
-      <div class="bar">
-        <div class="seg c" style="width:12.5%"></div>
-        <div class="seg h" style="width:12.5%; animation-delay:.4s"></div>
-        <div class="seg m" style="width:75%; animation-delay:.5s"></div>
+
+    <div class="screen">
+
+      <!-- whoami -->
+      <div class="cmd"><span class="pr"><span class="u">visitor</span><span class="p">@</span>talatbek<span class="p">:~$</span></span> <span class="in" id="type"></span><span class="cur" id="cur"></span></div>
+      <div class="out" id="whoami" style="visibility:hidden">
+        <h1 class="glow">Talatbek Urunov</h1>
+        <div class="sub"><span class="hl">security researcher</span> · npm ecosystem · HTB-certified <b>CPTS</b> / <b>CWES</b></div>
       </div>
-      <span class="lg"><b>1</b> critical · <b>1</b> high · <b>6</b> medium</span>
-    </div>
-  </header>
 
-  <div class="sec"><h2>Code execution</h2><span class="rule"></span><span class="count">2 findings</span></div>
-  <div class="list">
-    <article class="card sev-crit reveal">
-      <div class="top"><span class="pkg">gray-matter</span><span class="pill crit">Critical</span><span class="cvss">CVSS 9.8</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
-      <p class="desc">Front-matter language is auto-detected from untrusted input and routed to an <code>eval</code> engine. A markdown document beginning <code>---js</code> executes arbitrary JavaScript in the host process — <b>no application opt-in required</b>. Full remote code execution from user-submitted content.</p>
-      <div class="meta"><div class="m"><span class="k">Class</span><span class="v">CWE-94 · Code Injection</span></div><div class="m"><span class="k">Sink</span><span class="v">matter() → eval()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 4.0.3 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~30M / mo</span></div></div>
-      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
-        <div class="code"><span class="cm">// a document whose ---js front-matter runs on parse</span>
-<span class="kw">const</span> matter = <span class="fn">require</span>(<span class="st">'gray-matter'</span>);
+      <!-- profile -->
+      <div class="cmd"><span class="pr">$</span> <span class="in">cat ./profile.txt</span></div>
+      <div class="out">
+        <p class="lede">I find and disclose vulnerabilities in the open-source software the world depends on. Working alone, I identified <b>eight novel flaws</b> across widely-used npm packages — from arbitrary code execution to algorithmic denial of service — each reproduced with a working proof-of-concept, checked against prior art, and reported with a fix.</p>
+        <div class="kv">
+          <span class="k">findings</span><span class="v"><span class="n">8</span> novel &nbsp; <span class="rd">1 critical (9.8)</span> · 1 high (8.1) · 6 medium</span>
+          <span class="k">classes</span><span class="v">code injection · unsafe deserialization · ReDoS (×6)</span>
+          <span class="k">reach</span><span class="v"><span class="n">~98M</span> installs / month across affected packages</span>
+          <span class="k">disclosure</span><span class="v">coordinated via MITRE · maintainer-first for code execution</span>
+        </div>
+        <a class="run" href="Talatbek_Urunov_CV.pdf" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          ./download_cv.sh
+        </a>
+      </div>
+
+      <!-- ls findings -->
+      <div class="sec"><div class="cmd"><span class="pr">$</span> <span class="in">ls -la ~/findings</span></div></div>
+      <div class="ls"><table>
+        <tr><td class="perm">-rwx</td><td class="fn"><a href="#f01">01_gray-matter.md</a></td><td><span class="tag crit">CRIT 9.8</span></td><td>CWE-94 · RCE</td><td class="sz">~30M/mo</td></tr>
+        <tr><td class="perm">-rwx</td><td class="fn"><a href="#f02">02_yaml-front-matter.md</a></td><td><span class="tag high">HIGH 8.1</span></td><td>CWE-502 · code exec</td><td class="sz">~353K/mo</td></tr>
+        <tr><td class="perm">-rwx</td><td class="fn"><a href="#f03">03_strip-comments.md</a></td><td><span class="tag med">MED 5.3</span></td><td>CWE-1333 · O(2ⁿ)</td><td class="sz">~36M/mo</td></tr>
+        <tr><td class="perm">-rwx</td><td class="fn"><a href="#f04">04_platform.md</a></td><td><span class="tag med">MED 5.3</span></td><td>CWE-1333 · O(n²)</td><td class="sz">~25M/mo</td></tr>
+        <tr><td class="perm">-rwx</td><td class="fn"><a href="#f05">05_semver-utils.md</a></td><td><span class="tag med">MED 5.3</span></td><td>CWE-1333 · O(n³)</td><td class="sz">~2M/mo</td></tr>
+        <tr><td class="perm">-rwx</td><td class="fn"><a href="#f06">06_underscore.string.md</a></td><td><span class="tag med">MED 5.3</span></td><td>CWE-1333 · O(n²)</td><td class="sz">~4M/mo</td></tr>
+        <tr><td class="perm">-rwx</td><td class="fn"><a href="#f07">07_auth-header.md</a></td><td><span class="tag med">MED 5.3</span></td><td>CWE-1333 · O(n²)</td><td class="sz">~530K/mo</td></tr>
+        <tr><td class="perm">-rwx</td><td class="fn"><a href="#f08">08_configparser.md</a></td><td><span class="tag med">MED 5.3</span></td><td>CWE-1333 · O(n³)</td><td class="sz">~132K/mo</td></tr>
+      </table></div>
+
+      <!-- entries -->
+      <article class="fnd crit" id="f01">
+        <div class="cmd"><span class="pr">$</span> <span class="in">cat findings/01_gray-matter.md</span></div>
+        <div class="fhead"><span class="pkg">gray-matter</span><span class="sv crit">CRITICAL · CVSS 9.8</span><span class="cve">CVE pending</span></div>
+        <div class="meta"><span><span class="k">class:</span> CWE-94 Code Injection</span><span><span class="k">sink:</span> matter() → eval()</span><span><span class="k">affected:</span> ≤4.0.3 (latest)</span></div>
+        <p class="desc">Front-matter language is auto-detected from untrusted input and routed to an <code>eval</code> engine. A document beginning <code>---js</code> executes arbitrary JavaScript in the host process — <b>no application opt-in required</b>. Full remote code execution from user-submitted content.</p>
+        <details class="poc"><summary></summary><div class="pocbody">
+<pre class="code"><span class="cm">// a document whose ---js front-matter runs on parse</span>
+<span class="kw">const</span> matter = require(<span class="st">'gray-matter'</span>);
 matter(<span class="st">'---js\n((function(){ return process.pid })())\n---'</span>);
-<span class="cm">// the front-matter body is handed straight to eval() — arbitrary JS executes</span></div>
-        <div class="fix"><span class="lbl">Fix</span><span>Never route untrusted front-matter through <code>eval</code>. Disable the <b>js</b> engine unless the host explicitly opts in, and document that <code>---js</code> is code execution, not data.</span></div>
-      </div></details>
-    </article>
-    <article class="card sev-high reveal">
-      <div class="top"><span class="pkg">yaml-front-matter</span><span class="pill high">High</span><span class="cvss">CVSS 8.1</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
-      <p class="desc">The primary <code>loadFront()</code> API parses front-matter with js-yaml's unsafe full schema, enabling the <code>!!js/function</code> tag. Untrusted front-matter deserializes into callable JavaScript functions — code execution when the application invokes a front-matter value.</p>
-      <div class="meta"><div class="m"><span class="k">Class</span><span class="v">CWE-502 · Deserialization</span></div><div class="m"><span class="k">Sink</span><span class="v">loadFront() → yaml.load</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 4.1.1 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~353K / mo</span></div></div>
-      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
-        <div class="code"><span class="cm">// !!js/function is honoured by the unsafe full schema</span>
-<span class="kw">const</span> { loadFront } = <span class="fn">require</span>(<span class="st">'yaml-front-matter'</span>);
+<span class="cm">// the body is handed straight to eval()</span></pre>
+          <p class="fix"><span class="lbl">[fix]</span> Never route untrusted front-matter through <code>eval</code>. Disable the <b>js</b> engine unless the host explicitly opts in; document that <code>---js</code> is code execution, not data.</p>
+        </div></details>
+      </article>
+
+      <article class="fnd high" id="f02">
+        <div class="cmd"><span class="pr">$</span> <span class="in">cat findings/02_yaml-front-matter.md</span></div>
+        <div class="fhead"><span class="pkg">yaml-front-matter</span><span class="sv high">HIGH · CVSS 8.1</span><span class="cve">CVE pending</span></div>
+        <div class="meta"><span><span class="k">class:</span> CWE-502 Deserialization</span><span><span class="k">sink:</span> loadFront() → yaml.load</span><span><span class="k">affected:</span> ≤4.1.1 (latest)</span></div>
+        <p class="desc">The primary <code>loadFront()</code> API parses front-matter with js-yaml's unsafe full schema, enabling the <code>!!js/function</code> tag. Untrusted input deserializes into callable JavaScript — code execution when the application invokes a front-matter value.</p>
+        <details class="poc"><summary></summary><div class="pocbody">
+<pre class="code"><span class="kw">const</span> { loadFront } = require(<span class="st">'yaml-front-matter'</span>);
 <span class="kw">const</span> doc = loadFront(<span class="st">'---\nfn: !!js/function "function(){ return 42 }"\n---'</span>);
-doc.fn();  <span class="cm">// => 42  — deserialized straight into a callable function</span></div>
-        <div class="fix"><span class="lbl">Fix</span><span>Parse with js-yaml's <code>DEFAULT_SAFE_SCHEMA</code> (<code>safeLoad</code>) instead of the full schema, so <code>!!js/function</code> and other code-bearing tags are rejected.</span></div>
-      </div></details>
-    </article>
-  </div>
+doc.fn();  <span class="cm">// => 42 — deserialized into a callable function</span></pre>
+          <p class="fix"><span class="lbl">[fix]</span> Parse with js-yaml's <code>DEFAULT_SAFE_SCHEMA</code> (<code>safeLoad</code>) so code-bearing tags such as <code>!!js/function</code> are rejected.</p>
+        </div></details>
+      </article>
 
-  <div class="sec"><h2>Regular expression denial of service</h2><span class="rule"></span><span class="count">6 findings</span></div>
-  <div class="list">
-    <article class="card sev-med reveal">
-      <div class="top"><span class="pkg">strip-comments</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
-      <p class="desc"><b>Exponential</b> backtracking in the quoted-string regex (a latent <code>[^\1]</code> class bug). A ~65-byte input freezes the Node.js event loop for ~39 seconds; a few more bytes never returns.</p>
-      <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(2ⁿ) exponential</span></div><div class="m"><span class="k">Function</span><span class="v">strip()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 2.0.1 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~36M / mo</span></div></div>
-      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
-        <div class="code"><span class="kw">const</span> strip = <span class="fn">require</span>(<span class="st">'strip-comments'</span>);
-<span class="cm">// ~65 bytes of unterminated quoted content — event loop frozen ~39 s</span>
-strip(<span class="st">'/*'</span> + <span class="st">'"'</span>.repeat(30) + <span class="st">'!'</span>);
-<span class="cm">// a few more chars and the call never returns</span></div>
-        <div class="fix"><span class="lbl">Fix</span><span>Replace the catastrophic <code>[^\1]</code>-style class in the quoted-string pattern with an explicit, non-backtracking scanner (or an atomic group), so match time stays linear in input length.</span></div>
-      </div></details>
-    </article>
-    <article class="card sev-med reveal">
-      <div class="top"><span class="pkg">platform (platform.js)</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
-      <p class="desc"><b>Quadratic</b> backtracking in the Android User-Agent regex of <code>parse()</code>. A crafted ~720 KB User-Agent blocks the event loop for ~22 seconds; reachable wherever User-Agent strings are parsed.</p>
-      <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div><div class="m"><span class="k">Function</span><span class="v">parse(ua)</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 1.3.6 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~25M / mo</span></div></div>
-      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
-        <div class="code"><span class="kw">const</span> platform = <span class="fn">require</span>(<span class="st">'platform'</span>);
-<span class="cm">// crafted Android User-Agent, ~720 KB — event loop frozen ~22 s</span>
+      <article class="fnd med" id="f03">
+        <div class="cmd"><span class="pr">$</span> <span class="in">cat findings/03_strip-comments.md</span></div>
+        <div class="fhead"><span class="pkg">strip-comments</span><span class="sv med">MEDIUM · CVSS 5.3</span><span class="cve">CVE pending</span></div>
+        <div class="meta"><span><span class="k">class:</span> CWE-1333 ReDoS</span><span><span class="k">complexity:</span> O(2ⁿ) exponential</span><span><span class="k">fn:</span> strip()</span><span><span class="k">affected:</span> ≤2.0.1</span></div>
+        <p class="desc">Exponential backtracking in the quoted-string regex — a latent <code>[^\1]</code> class bug. A ~65-byte input freezes the Node.js event loop for ~39 seconds; a few more bytes never return.</p>
+        <details class="poc"><summary></summary><div class="pocbody">
+<pre class="code"><span class="kw">const</span> strip = require(<span class="st">'strip-comments'</span>);
+<span class="cm">// ~65 bytes of unterminated quoted content — frozen ~39 s</span>
+strip(<span class="st">'/*'</span> + <span class="st">'"'</span>.repeat(30) + <span class="st">'!'</span>);</pre>
+          <p class="fix"><span class="lbl">[fix]</span> Replace the catastrophic <code>[^\1]</code>-style class with an explicit, non-backtracking scanner (or an atomic group) so match time stays linear.</p>
+        </div></details>
+      </article>
+
+      <article class="fnd med" id="f04">
+        <div class="cmd"><span class="pr">$</span> <span class="in">cat findings/04_platform.md</span></div>
+        <div class="fhead"><span class="pkg">platform</span><span class="sv med">MEDIUM · CVSS 5.3</span><span class="cve">CVE pending</span></div>
+        <div class="meta"><span><span class="k">class:</span> CWE-1333 ReDoS</span><span><span class="k">complexity:</span> O(n²) quadratic</span><span><span class="k">fn:</span> parse(ua)</span><span><span class="k">affected:</span> ≤1.3.6</span></div>
+        <p class="desc">Quadratic backtracking in the Android User-Agent regex of <code>parse()</code>. A crafted ~720 KB User-Agent blocks the event loop for ~22 seconds; reachable wherever User-Agent strings are parsed.</p>
+        <details class="poc"><summary></summary><div class="pocbody">
+<pre class="code"><span class="kw">const</span> platform = require(<span class="st">'platform'</span>);
+<span class="cm">// crafted Android User-Agent, ~720 KB — frozen ~22 s</span>
 <span class="kw">const</span> ua = <span class="st">'Mozilla/5.0 (Linux; Android '</span> + <span class="st">' '</span>.repeat(720000) + <span class="st">';)'</span>;
-platform.parse(ua);   <span class="cm">// reachable anywhere a UA header is parsed</span></div>
-        <div class="fix"><span class="lbl">Fix</span><span>Anchor and bound the Android segment of the UA regex (cap the repeated group), or pre-truncate User-Agent input to a sane length before parsing.</span></div>
-      </div></details>
-    </article>
-    <article class="card sev-med reveal">
-      <div class="top"><span class="pkg">semver-utils</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
-      <p class="desc"><b>Cubic</b> backtracking in <code>parseRange()</code> on a run of whitespace. ~4 KB of spaces blocks the event loop for ~19 seconds; a small payload for a large stall.</p>
-      <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n³) cubic</span></div><div class="m"><span class="k">Function</span><span class="v">parseRange()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 1.1.4 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~2M / mo</span></div></div>
-      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
-        <div class="code"><span class="kw">const</span> semverUtils = <span class="fn">require</span>(<span class="st">'semver-utils'</span>);
-<span class="cm">// ~4 KB of whitespace — three nested optional groups → cubic blow-up, ~19 s</span>
-semverUtils.parseRange(<span class="st">' '</span>.repeat(4000) + <span class="st">'!'</span>);</div>
-        <div class="fix"><span class="lbl">Fix</span><span>Collapse leading/trailing whitespace before matching, and flatten the nested optional groups so the range pattern can't backtrack cubically.</span></div>
-      </div></details>
-    </article>
-    <article class="card sev-med reveal">
-      <div class="top"><span class="pkg">underscore.string</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
-      <p class="desc"><b>Quadratic</b> backtracking in <code>stripTags()</code> on unclosed <code>&lt;</code> characters. Distinct from the earlier <code>unescapeHTML</code> issue (CVE-2017-16116) and unpatched in the latest release.</p>
-      <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div><div class="m"><span class="k">Function</span><span class="v">stripTags()</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 3.3.6 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~4M / mo</span></div></div>
-      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
-        <div class="code"><span class="kw">const</span> s = <span class="fn">require</span>(<span class="st">'underscore.string'</span>);
-<span class="cm">// a long run of unclosed '&lt;' — quadratic backtracking in the tag regex</span>
-s.stripTags(<span class="st">'&lt;'</span>.repeat(160000));   <span class="cm">// ~11.5 s for ~160 K chars</span></div>
-        <div class="fix"><span class="lbl">Fix</span><span>Match tags with a tempered pattern (<code>&lt;[^&gt;]*&gt;</code>) or a single linear scan instead of a backtracking greedy group — and note this is <b>distinct</b> from CVE-2017-16116 (<code>unescapeHTML</code>), still unpatched.</span></div>
-      </div></details>
-    </article>
-    <article class="card sev-med reveal">
-      <div class="top"><span class="pkg">auth-header</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
-      <p class="desc"><b>Quadratic</b> backtracking while tokenizing HTTP <code>Authorization</code> / <code>WWW-Authenticate</code> headers. A ~160 KB header of space-separated tokens blocks the event loop for ~26 seconds.</p>
-      <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n²) quadratic</span></div><div class="m"><span class="k">Function</span><span class="v">parse(header)</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 1.0.0 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~530K / mo</span></div></div>
-      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
-        <div class="code"><span class="kw">const</span> auth = <span class="fn">require</span>(<span class="st">'auth-header'</span>);
-<span class="cm">// ~160 KB Authorization header of space-separated tokens — ~26 s</span>
-auth.parse(<span class="st">'Bearer '</span> + <span class="st">'a '</span>.repeat(80000));</div>
-        <div class="fix"><span class="lbl">Fix</span><span>Tokenize the header with a linear split rather than a backtracking regex, and cap header length before parsing (attacker controls the <code>Authorization</code> / <code>WWW-Authenticate</code> value).</span></div>
-      </div></details>
-    </article>
-    <article class="card sev-med reveal">
-      <div class="top"><span class="pkg">configparser</span><span class="pill med">Medium</span><span class="cvss">CVSS 5.3</span><span class="spacer"></span><span class="cve"><span class="dot"></span>CVE pending</span></div>
-      <p class="desc"><b>Polynomial</b> backtracking in <code>read()</code> on a whitespace-heavy configuration line. An ~8 KB line blocks the event loop for ~88 seconds; reachable via attacker-controlled config files.</p>
-      <div class="meta"><div class="m"><span class="k">Complexity</span><span class="v">O(n³) polynomial</span></div><div class="m"><span class="k">Function</span><span class="v">read(file)</span></div><div class="m"><span class="k">Affected</span><span class="v">≤ 0.3.10 (latest)</span></div><div class="m"><span class="k">Downloads</span><span class="v tnum">~132K / mo</span></div></div>
-      <details class="poc"><summary><span class="chev">▶</span>Proof of concept &amp; fix</summary><div class="pocbody">
-        <div class="code"><span class="kw">const</span> { ConfigParser } = <span class="fn">require</span>(<span class="st">'configparser'</span>);
-<span class="cm">// a single ~8 KB whitespace-heavy line freezes read() for ~88 s</span>
+platform.parse(ua);</pre>
+          <p class="fix"><span class="lbl">[fix]</span> Anchor and bound the Android segment of the UA regex, or pre-truncate User-Agent input to a sane length before parsing.</p>
+        </div></details>
+      </article>
+
+      <article class="fnd med" id="f05">
+        <div class="cmd"><span class="pr">$</span> <span class="in">cat findings/05_semver-utils.md</span></div>
+        <div class="fhead"><span class="pkg">semver-utils</span><span class="sv med">MEDIUM · CVSS 5.3</span><span class="cve">CVE pending</span></div>
+        <div class="meta"><span><span class="k">class:</span> CWE-1333 ReDoS</span><span><span class="k">complexity:</span> O(n³) cubic</span><span><span class="k">fn:</span> parseRange()</span><span><span class="k">affected:</span> ≤1.1.4</span></div>
+        <p class="desc">Cubic backtracking in <code>parseRange()</code> on a run of whitespace. ~4 KB of spaces blocks the event loop for ~19 seconds — a small payload for a large stall.</p>
+        <details class="poc"><summary></summary><div class="pocbody">
+<pre class="code"><span class="kw">const</span> semverUtils = require(<span class="st">'semver-utils'</span>);
+<span class="cm">// ~4 KB whitespace — nested optional groups → cubic, ~19 s</span>
+semverUtils.parseRange(<span class="st">' '</span>.repeat(4000) + <span class="st">'!'</span>);</pre>
+          <p class="fix"><span class="lbl">[fix]</span> Collapse leading/trailing whitespace before matching and flatten the nested optional groups so the pattern can't backtrack cubically.</p>
+        </div></details>
+      </article>
+
+      <article class="fnd med" id="f06">
+        <div class="cmd"><span class="pr">$</span> <span class="in">cat findings/06_underscore.string.md</span></div>
+        <div class="fhead"><span class="pkg">underscore.string</span><span class="sv med">MEDIUM · CVSS 5.3</span><span class="cve">CVE pending</span></div>
+        <div class="meta"><span><span class="k">class:</span> CWE-1333 ReDoS</span><span><span class="k">complexity:</span> O(n²) quadratic</span><span><span class="k">fn:</span> stripTags()</span><span><span class="k">affected:</span> ≤3.3.6</span></div>
+        <p class="desc">Quadratic backtracking in <code>stripTags()</code> on unclosed <code>&lt;</code> characters. Distinct from the earlier <code>unescapeHTML</code> issue (CVE-2017-16116) and unpatched in the latest release.</p>
+        <details class="poc"><summary></summary><div class="pocbody">
+<pre class="code"><span class="kw">const</span> s = require(<span class="st">'underscore.string'</span>);
+<span class="cm">// a long run of unclosed '&lt;' — quadratic, ~11.5 s</span>
+s.stripTags(<span class="st">'&lt;'</span>.repeat(160000));</pre>
+          <p class="fix"><span class="lbl">[fix]</span> Match tags with a tempered pattern (<code>&lt;[^&gt;]*&gt;</code>) or a single linear scan instead of a backtracking greedy group.</p>
+        </div></details>
+      </article>
+
+      <article class="fnd med" id="f07">
+        <div class="cmd"><span class="pr">$</span> <span class="in">cat findings/07_auth-header.md</span></div>
+        <div class="fhead"><span class="pkg">auth-header</span><span class="sv med">MEDIUM · CVSS 5.3</span><span class="cve">CVE pending</span></div>
+        <div class="meta"><span><span class="k">class:</span> CWE-1333 ReDoS</span><span><span class="k">complexity:</span> O(n²) quadratic</span><span><span class="k">fn:</span> parse(header)</span><span><span class="k">affected:</span> ≤1.0.0</span></div>
+        <p class="desc">Quadratic backtracking while tokenizing HTTP <code>Authorization</code> / <code>WWW-Authenticate</code> headers. A ~160 KB header of space-separated tokens blocks the event loop for ~26 seconds.</p>
+        <details class="poc"><summary></summary><div class="pocbody">
+<pre class="code"><span class="kw">const</span> auth = require(<span class="st">'auth-header'</span>);
+<span class="cm">// ~160 KB header of space-separated tokens — ~26 s</span>
+auth.parse(<span class="st">'Bearer '</span> + <span class="st">'a '</span>.repeat(80000));</pre>
+          <p class="fix"><span class="lbl">[fix]</span> Tokenize the header with a linear split rather than a backtracking regex, and cap header length before parsing.</p>
+        </div></details>
+      </article>
+
+      <article class="fnd med" id="f08">
+        <div class="cmd"><span class="pr">$</span> <span class="in">cat findings/08_configparser.md</span></div>
+        <div class="fhead"><span class="pkg">configparser</span><span class="sv med">MEDIUM · CVSS 5.3</span><span class="cve">CVE pending</span></div>
+        <div class="meta"><span><span class="k">class:</span> CWE-1333 ReDoS</span><span><span class="k">complexity:</span> O(n³) polynomial</span><span><span class="k">fn:</span> read(file)</span><span><span class="k">affected:</span> ≤0.3.10</span></div>
+        <p class="desc">Polynomial backtracking in <code>read()</code> on a whitespace-heavy configuration line. An ~8 KB line blocks the event loop for ~88 seconds; reachable via attacker-controlled config files.</p>
+        <details class="poc"><summary></summary><div class="pocbody">
+<pre class="code"><span class="kw">const</span> { ConfigParser } = require(<span class="st">'configparser'</span>);
+<span class="cm">// a single ~8 KB whitespace-heavy line freezes read() ~88 s</span>
 fs.writeFileSync(<span class="st">'evil.ini'</span>, <span class="st">'[s]\nk ='</span> + <span class="st">' '</span>.repeat(8000) + <span class="st">'!'</span>);
-<span class="kw">new</span> ConfigParser().read(<span class="st">'evil.ini'</span>);   <span class="cm">// reachable via attacker-supplied config</span></div>
-        <div class="fix"><span class="lbl">Fix</span><span>Trim each line before applying the key/value pattern, and rewrite the section/option regex so the whitespace groups can't overlap and backtrack.</span></div>
-      </div></details>
-    </article>
-  </div>
+<span class="kw">new</span> ConfigParser().read(<span class="st">'evil.ini'</span>);</pre>
+          <p class="fix"><span class="lbl">[fix]</span> Trim each line before applying the key/value pattern and rewrite the option regex so the whitespace groups can't overlap and backtrack.</p>
+        </div></details>
+      </article>
 
-  <div class="sec"><h2>Disclosure timeline</h2><span class="rule"></span><span class="count">Coordinated</span></div>
-  <div class="panelblock reveal">
-    <div class="timeline">
-      <div class="tl done"><span class="dot"></span>
-        <div class="when">Aug 2026 · Discovery</div>
-        <div class="head">8 candidate vulnerabilities surfaced</div>
-        <div class="body">Static regex extraction (<code>recheck</code>) and source auditing for dangerous sinks — <code>eval</code>, <code>new&nbsp;Function</code>, unsafe deserialization — across widely-used npm packages.</div>
+      <!-- credentials -->
+      <div class="sec"><div class="cmd"><span class="pr">$</span> <span class="in">cat ~/credentials.txt && echo $HIGHLIGHTS</span></div></div>
+      <div class="grid2">
+        <div>
+          <div class="cert"><div class="t">Certified Penetration Testing Specialist</div><div class="i">Hack The Box · CPTS · July 2026</div><div class="id">HTBCERT-8560F4D0B7</div></div>
+          <div class="cert"><div class="t">Certified Web Exploitation Specialist</div><div class="i">Hack The Box · CWES · June 2026</div><div class="id">HTBCERT-7FDA841FCA</div></div>
+        </div>
+        <div>
+          <ul class="hi">
+            <li><b>Critical RCE</b> in gray-matter (~30M installs/mo) — arbitrary JavaScript from user-submitted markdown.</li>
+            <li>First to report an <b>exponential-time</b> ReDoS in strip-comments; a separate stripTags ReDoS distinct from CVE-2017-16116.</li>
+            <li>Every finding <b>novelty-verified</b> against OSV.dev and the GitHub Advisory Database before disclosure.</li>
+          </ul>
+        </div>
       </div>
-      <div class="tl done"><span class="dot"></span>
-        <div class="when">Aug 2026 · Verification</div>
-        <div class="head">Every finding confirmed end-to-end</div>
-        <div class="body">Each vulnerability reproduced through the package's <b>public API</b> with a working proof-of-concept and measured impact — from ~19&nbsp;s stalls to full arbitrary code execution.</div>
-      </div>
-      <div class="tl done"><span class="dot"></span>
-        <div class="when">Aug 2026 · Novelty</div>
-        <div class="head">Cross-checked against prior advisories</div>
-        <div class="body">All 8 verified <b>novel</b> against OSV.dev and the GitHub Advisory Database. The <code>underscore.string</code> <code>stripTags</code> issue confirmed distinct from CVE-2017-16116.</div>
-      </div>
-      <div class="tl done"><span class="dot"></span>
-        <div class="when">Aug 4, 2026 · Coordinated disclosure</div>
-        <div class="head">Code-execution findings reported maintainer-first</div>
-        <div class="body">The Critical (gray-matter) and High (yaml-front-matter) findings disclosed privately to maintainers before any public detail — no exploit posted publicly.</div>
-      </div>
-      <div class="tl done"><span class="dot"></span>
-        <div class="when">Aug 4, 2026 · CVE request</div>
-        <div class="head">Filed with MITRE</div>
-        <div class="body">CVE ID requests submitted through MITRE with full write-ups and proposed fixes — including request <code>#2082883</code> (underscore.string) and <code>#2082919</code> (platform).</div>
-      </div>
-      <div class="tl pending"><span class="dot"></span>
-        <div class="when">In progress · Assignment</div>
-        <div class="head">CVE identifiers pending</div>
-        <div class="body">Awaiting CVE-ID issuance from MITRE. Identifiers will be published here and across the advisories on assignment.</div>
-      </div>
-    </div>
-  </div>
 
-  <div class="sec"><h2>Toolkit</h2><span class="rule"></span><span class="count">Research stack</span></div>
-  <div class="panelblock reveal">
-    <div class="kitgroup">
-      <div class="gl">Discovery &amp; analysis</div>
-      <div class="kit">
-        <span class="chip"><span class="d"></span>recheck</span>
-        <span class="chip"><span class="d"></span>Static regex extraction</span>
-        <span class="chip"><span class="d"></span>AST source auditing</span>
-        <span class="chip"><span class="d"></span>Sink tracing · eval / Function</span>
-        <span class="chip"><span class="d"></span>Node.js event-loop profiling</span>
+      <!-- disclosure git log -->
+      <div class="sec"><div class="cmd"><span class="pr">$</span> <span class="in">git log --oneline ~/disclosure</span></div></div>
+      <div class="log">
+        <div class="commit"><div class="h">a1f findings <span class="d">Aug 2026</span></div><div class="m">Discovery</div><div class="b">Static regex extraction (<code>recheck</code>) and source auditing for dangerous sinks — <code>eval</code>, <code>new Function</code>, unsafe deserialization — surfaced eight candidates.</div></div>
+        <div class="commit"><div class="h">b7c verify <span class="d">Aug 2026</span></div><div class="m">Verification</div><div class="b">Each finding reproduced through the package's public API with a working proof-of-concept and measured impact — from ~19 s stalls to full arbitrary code execution.</div></div>
+        <div class="commit"><div class="h">c3e novelty <span class="d">Aug 2026</span></div><div class="m">Novelty check</div><div class="b">All eight cross-checked against OSV.dev and the GitHub Advisory Database — none previously reported. stripTags issue confirmed distinct from CVE-2017-16116.</div></div>
+        <div class="commit"><div class="h">d9a disclose <span class="d">Aug 4 2026</span></div><div class="m">Coordinated disclosure</div><div class="b">Critical (gray-matter) and High (yaml-front-matter) findings disclosed privately to maintainers first — no exploit posted publicly.</div></div>
+        <div class="commit"><div class="h">e2b cve-req <span class="d">Aug 4 2026</span></div><div class="m">CVE request</div><div class="b">Filed with MITRE with full write-ups and proposed fixes, including requests <code>#2082883</code> (underscore.string) and <code>#2082919</code> (platform).</div></div>
+        <div class="commit wait"><div class="h">HEAD assign <span class="d">now</span></div><div class="m">Assignment</div><div class="b">Awaiting CVE-ID issuance from MITRE. Identifiers will be published here on assignment.</div></div>
       </div>
-    </div>
-    <div class="kitgroup">
-      <div class="gl">Verification &amp; disclosure</div>
-      <div class="kit">
-        <span class="chip"><span class="d"></span>End-to-end PoC harness</span>
-        <span class="chip"><span class="d"></span>OSV.dev novelty checks</span>
-        <span class="chip"><span class="d"></span>GitHub Advisory DB</span>
-        <span class="chip"><span class="d"></span>MITRE CVE request</span>
-        <span class="chip"><span class="d"></span>CVSS 3.1 scoring</span>
-        <span class="chip"><span class="d"></span>Coordinated disclosure</span>
-      </div>
-    </div>
-    <div class="kitgroup">
-      <div class="gl">Offensive security</div>
-      <div class="kit">
-        <span class="chip"><span class="d"></span>Web exploitation</span>
-        <span class="chip"><span class="d"></span>Penetration testing</span>
-        <span class="chip"><span class="d"></span>Burp Suite</span>
-        <span class="chip"><span class="d"></span>Active Directory</span>
-        <span class="chip"><span class="d"></span>JavaScript / Node.js internals</span>
-      </div>
-    </div>
-  </div>
 
-  <div class="sec"><h2>Certifications</h2><span class="rule"></span><span class="count">Hack The Box</span></div>
-  <div class="certs">
-    <article class="cert reveal"><div class="badge">CPTS</div><div><div class="ctitle">Certified Penetration Testing Specialist</div><div class="cissuer">Hack The Box · earned Jul 2026</div><div class="cid">ID · HTBCERT-8560F4D0B7</div></div></article>
-    <article class="cert reveal"><div class="badge alt">CWES</div><div><div class="ctitle">Certified Web Exploitation Specialist</div><div class="cissuer">Hack The Box · earned Jun 2026</div><div class="cid">ID · HTBCERT-7FDA841FCA</div></div></article>
-  </div>
+      <!-- toolkit -->
+      <div class="sec"><div class="cmd"><span class="pr">$</span> <span class="in">cat ~/.toolkit</span></div></div>
+      <div class="tk"><span class="k">discovery&nbsp;&nbsp;&nbsp;</span> <span class="v"><span>recheck</span><span>static regex extraction</span><span>AST source audit</span><span>sink tracing</span><span>event-loop profiling</span></span></div>
+      <div class="tk"><span class="k">verify&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="v"><span>PoC harness</span><span>OSV.dev</span><span>GitHub Advisory DB</span><span>MITRE</span><span>CVSS 3.1</span></span></div>
+      <div class="tk"><span class="k">offensive&nbsp;&nbsp;</span> <span class="v"><span>web exploitation</span><span>pentest</span><span>Burp Suite</span><span>Active Directory</span><span>Node.js internals</span></span></div>
 
-  <div class="sec"><h2>Method</h2><span class="rule"></span></div>
-  <div class="panelblock reveal">
-    <div class="method">
-      <div class="step"><div class="k">01 · Analyze</div><div class="t">Static extraction and classification of regex literals (recheck); source auditing for dangerous sinks — <span class="mono">eval</span>, <span class="mono">new&nbsp;Function</span>, unsafe deserialization.</div></div>
-      <div class="step"><div class="k">02 · Verify</div><div class="t">Every finding confirmed end-to-end through the package's public API with a working proof-of-concept and measured impact.</div></div>
-      <div class="step"><div class="k">03 · Novelty</div><div class="t">Cross-checked against OSV.dev, the GitHub Advisory Database, and public search — no prior advisory for any finding.</div></div>
-      <div class="step"><div class="k">04 · Disclose</div><div class="t">Coordinated disclosure via MITRE, with a proposed fix for every issue. Code-execution findings reported maintainer-first.</div></div>
+      <footer>
+        <div class="cmd"><span class="pr">$</span> <span class="in">contact --list</span></div>
+        <div class="lk">
+          <a href="Talatbek_Urunov_CV.pdf" download>cv.pdf</a>
+          <a href="mailto:talatbekurinov303@gmail.com">talatbekurinov303@gmail.com</a>
+          <a href="https://www.linkedin.com/in/talatbek-urunov-" target="_blank" rel="noopener">linkedin</a>
+          <a href="https://github.com/TalatbekUrunov" target="_blank" rel="noopener">github</a>
+        </div>
+        <div class="note"># Research conducted against the researcher's own environments only. Proof-of-concept code is benign and demonstrates impact without harmful action. CVE identifiers are pending assignment and will be added on issuance.</div>
+      </footer>
+
     </div>
-    <p class="note">Research conducted against the researcher's own environments only. Proof-of-concept code is benign and demonstrates impact without harmful action. CVE identifiers are pending assignment and will be added on issuance.</p>
-  </div>
-
-  <footer>
-    <span class="who">Talatbek Urunov · Security Researcher</span>
-    <span class="links">
-      <a href="Talatbek_Urunov_CV.pdf" download>cv · pdf</a>
-      <a href="mailto:talatbekurinov303@gmail.com">email</a>
-      <a href="https://www.linkedin.com/in/talatbek-urunov-" target="_blank" rel="noopener">linkedin</a>
-      <a href="https://github.com/TalatbekUrunov" target="_blank" rel="noopener">github</a>
-    </span>
-  </footer>
-</div>
+  </main>
 
 <script>
 (function(){
-  var root=document.documentElement, btn=document.getElementById('tg');
-  function cur(){var s=root.getAttribute('data-theme');return s||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');}
-  btn.addEventListener('click',function(){root.setAttribute('data-theme', cur()==='dark'?'light':'dark');});
+  var root=document.documentElement, tg=document.getElementById('tg');
+  tg.addEventListener('click',function(){ root.setAttribute('data-theme', root.getAttribute('data-theme')==='amber'?'':'amber'); });
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-  /* ---- animated network with cursor interaction ---- */
-  var canvas=document.getElementById('net'), ctx=canvas.getContext('2d');
-  var W,H,DPR,nodes=[],rgb='60,230,209',maxD2,mouse={x:-9999,y:-9999,on:false};
-  function readColor(){var c=getComputedStyle(root).getPropertyValue('--net').trim(); if(c) rgb=c;}
-  function resize(){
-    DPR=Math.min(window.devicePixelRatio||1,2);
-    W=canvas.width=innerWidth*DPR; H=canvas.height=innerHeight*DPR;
-    canvas.style.width=innerWidth+'px'; canvas.style.height=innerHeight+'px';
-    var target=Math.round(Math.min(96,(innerWidth*innerHeight)/15000));
-    nodes=[];
-    for(var i=0;i<target;i++) nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*0.15*DPR,vy:(Math.random()-.5)*0.15*DPR,r:(Math.random()*1.7+0.7)*DPR});
-    maxD2=(150*DPR)*(150*DPR);
+  /* ---- typewriter for whoami ---- */
+  var type=document.getElementById('type'), cur=document.getElementById('cur'), who=document.getElementById('whoami');
+  var text='whoami';
+  if(reduce){ type.textContent=text; who.style.visibility='visible'; }
+  else{
+    var i=0;
+    (function tick(){
+      if(i<=text.length){ type.textContent=text.slice(0,i); i++; setTimeout(tick, 78); }
+      else { setTimeout(function(){ who.style.visibility='visible'; cur.style.display='none'; }, 260); }
+    })();
   }
-  addEventListener('mousemove',function(e){mouse.x=e.clientX*DPR; mouse.y=e.clientY*DPR; mouse.on=true;});
-  addEventListener('mouseout',function(){mouse.on=false;});
-  function frame(){
-    readColor();
-    ctx.clearRect(0,0,W,H);
-    var mr2=(180*DPR)*(180*DPR);
-    for(var i=0;i<nodes.length;i++){
-      var a=nodes[i]; a.x+=a.vx; a.y+=a.vy;
-      if(a.x<0||a.x>W)a.vx*=-1; if(a.y<0||a.y>H)a.vy*=-1;
-      /* link to cursor */
-      if(mouse.on){
-        var mdx=a.x-mouse.x,mdy=a.y-mouse.y,md2=mdx*mdx+mdy*mdy;
-        if(md2<mr2){
-          var mo=(1-md2/mr2)*0.5;
-          ctx.strokeStyle='rgba('+rgb+','+mo.toFixed(3)+')'; ctx.lineWidth=DPR*0.7;
-          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(mouse.x,mouse.y); ctx.stroke();
-          a.vx += -mdx/md2*6; a.vy += -mdy/md2*6;
-          a.vx=Math.max(-.5*DPR,Math.min(.5*DPR,a.vx)); a.vy=Math.max(-.5*DPR,Math.min(.5*DPR,a.vy));
-        }
-      }
-      for(var j=i+1;j<nodes.length;j++){
-        var b=nodes[j],dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy;
-        if(d2<maxD2){
-          var o=(1-d2/maxD2)*0.32;
-          ctx.strokeStyle='rgba('+rgb+','+o.toFixed(3)+')'; ctx.lineWidth=DPR*0.55;
-          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-        }
-      }
-      ctx.fillStyle='rgba('+rgb+',0.6)';
-      ctx.beginPath(); ctx.arc(a.x,a.y,a.r,0,6.283); ctx.fill();
-    }
-    if(mouse.on){ ctx.fillStyle='rgba('+rgb+',0.9)'; ctx.beginPath(); ctx.arc(mouse.x,mouse.y,2.2*DPR,0,6.283); ctx.fill(); }
-    if(!reduce) requestAnimationFrame(frame);
-  }
-  resize(); addEventListener('resize',function(){clearTimeout(window.__rt); window.__rt=setTimeout(resize,180);}); frame();
 
-  /* ---- count-up stats ---- */
-  function countUp(el){
-    var to=+el.getAttribute('data-to'), pre=el.getAttribute('data-prefix')||'', suf=el.getAttribute('data-suffix')||'';
-    if(reduce){el.textContent=pre+to+suf; return;}
-    var start=performance.now(), dur=1100;
-    function tick(now){
-      var p=Math.min(1,(now-start)/dur), e=1-Math.pow(1-p,3), v=Math.round(e*to);
-      el.textContent=pre+v+suf;
-      if(p<1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
+  /* ---- matrix rain ---- */
+  var c=document.getElementById('matrix'), x=c.getContext('2d');
+  var glyphs='0123456789ABCDEF<>{}[]/\\$#*+=!?;:abcdef'.split('');
+  var fs=15, W,H,cols,drops;
+  function readPh(){ return getComputedStyle(root).getPropertyValue('--ph').trim()||'#3ef07f'; }
+  function resize(){
+    W=c.width=innerWidth; H=c.height=innerHeight;
+    cols=Math.ceil(W/fs);
+    drops=[]; for(var k=0;k<cols;k++) drops[k]=Math.random()*-40;
   }
-  /* ---- scroll reveal ---- */
-  if('IntersectionObserver' in window && !reduce){
-    var io=new IntersectionObserver(function(es){es.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target);} });},{threshold:.12, rootMargin:'0px 0px -6% 0px'});
-    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
-  } else { document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in');}); }
-  /* fire count-up shortly after load */
-  setTimeout(function(){ document.querySelectorAll('.stat .n').forEach(countUp); }, 200);
+  function draw(){
+    x.fillStyle='rgba(7,10,7,0.10)'; x.fillRect(0,0,W,H);
+    var ph=readPh();
+    x.font=fs+'px "JetBrains Mono", monospace';
+    for(var k=0;k<cols;k++){
+      var ch=glyphs[(Math.random()*glyphs.length)|0];
+      var xp=k*fs, yp=drops[k]*fs;
+      x.fillStyle=ph; x.globalAlpha=0.85; x.fillText(ch,xp,yp);           // bright head
+      x.globalAlpha=0.30; x.fillText(glyphs[(Math.random()*glyphs.length)|0],xp,yp-fs);
+      x.globalAlpha=1;
+      if(yp>H && Math.random()>0.975) drops[k]=Math.random()*-20;
+      drops[k]+=0.5;
+    }
+  }
+  resize();
+  addEventListener('resize',function(){ clearTimeout(window.__r); window.__r=setTimeout(resize,180); });
+  if(reduce){ draw(); } else { setInterval(draw, 55); }
 })();
 </script>
+</body>
+</html>

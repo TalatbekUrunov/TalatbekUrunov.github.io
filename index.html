@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Talatbek Urunov — Vulnerability Research</title>
 <meta name="description" content="Security researcher. Eight novel vulnerabilities in widely-used npm packages, verified and disclosed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#060608; --bg2:#0b0b0f; --elev:rgba(255,255,255,.026); --elev2:rgba(255,255,255,.045);
@@ -13,7 +16,7 @@
     --a1:#2dd4bf; --a2:#818cf8; --a3:#22d3ee;
     --crit:#fb7185; --high:#fbbf24; --med:#a3e635;
     --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-    --sans:"Inter","Helvetica Neue",Helvetica,system-ui,-apple-system,Arial,sans-serif;
+    --sans:"Space Grotesk","Helvetica Neue",Helvetica,system-ui,-apple-system,Arial,sans-serif;
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -387,7 +390,7 @@ fs.writeFileSync(<span class="st">'evil.ini'</span>, <span class="st">'[s]\nk ='
     off.width=W; off.height=H;
     var fs=Math.min(W*0.9/4.6, H*0.30, 150);
     o.fillStyle='#fff'; o.textAlign='center'; o.textBaseline='middle';
-    function setF(s){ o.font='800 '+s+'px "Inter","Helvetica Neue",Arial,sans-serif'; }
+    function setF(s){ o.font='700 '+s+'px "Space Grotesk","Helvetica Neue",Arial,sans-serif'; }
     setF(fs);
     while(o.measureText('TALATBEK').width>W*0.88 && fs>20){ fs-=4; setF(fs); }
     var gapY=fs*0.62;
@@ -420,7 +423,8 @@ fs.writeFileSync(<span class="st">'evil.ini'</span>, <span class="st">'[s]\nk ='
   function staticDraw(){ ctx.clearRect(0,0,W,H); for(var i=0;i<ps.length;i++){ var p=ps[i]; ctx.fillStyle=p.c; ctx.fillRect(p.tx,p.ty,1.6,1.6);} }
   cv.addEventListener('pointermove',function(e){ var r=cv.getBoundingClientRect(); mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top; });
   cv.addEventListener('pointerleave',function(){ mouse.x=-9999; mouse.y=-9999; });
-  build(); if(reduce) staticDraw(); else frame();
+  function boot(){ build(); if(reduce) staticDraw(); else frame(); }
+  if(document.fonts && document.fonts.load){ document.fonts.load('700 120px "Space Grotesk"').then(boot).catch(boot); } else { boot(); }
   var rt; addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(function(){ build(); if(reduce) staticDraw(); },200); });
 
   /* ---------- reveal on scroll ---------- */

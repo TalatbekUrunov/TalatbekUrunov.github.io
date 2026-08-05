@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Talatbek Urunov — Vulnerability Research</title>
 <meta name="description" content="Security researcher. Eight novel vulnerabilities in widely-used npm packages, verified and disclosed.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23060608'/%3E%3Cpath d='M16 4l9 3v7c0 6-4 10-9 12-5-2-9-6-9-12V7z' fill='none' stroke='%232dd4bf' stroke-width='2'/%3E%3Cpath d='M11 15l3 3 6-7' fill='none' stroke='%23818cf8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://talatbekurunov.github.io/">
+<meta property="og:title" content="Talatbek Urunov — Vulnerability Research">
+<meta property="og:description" content="HTB-certified security researcher. 8 novel vulnerabilities in widely-used npm packages — from remote code execution to algorithmic denial of service.">
+<meta property="og:image" content="https://talatbekurunov.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Talatbek Urunov — Vulnerability Research">
+<meta name="twitter:description" content="8 novel vulnerabilities in widely-used npm packages, verified and disclosed.">
+<meta name="twitter:image" content="https://talatbekurunov.github.io/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -24,6 +36,9 @@
   body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden}
   ::selection{background:var(--a1); color:#04120f}
   a{color:var(--a1); text-decoration:none} a:hover{color:var(--a3)}
+
+  /* scroll progress */
+  .progress{position:fixed; top:0; left:0; height:2px; width:0; z-index:40; background:linear-gradient(90deg,var(--a1),var(--a2),var(--a3)); box-shadow:0 0 12px color-mix(in srgb,var(--a1) 60%,transparent); transition:width .08s linear}
 
   /* ambient spotlight that tracks cursor */
   .amb{position:fixed; inset:0; z-index:0; pointer-events:none;
@@ -87,8 +102,11 @@
   .card{position:relative; border:1px solid var(--line); border-radius:18px; background:var(--elev); padding:24px clamp(18px,3vw,28px); overflow:hidden; transition:border-color .25s, transform .25s, background .25s}
   .card::after{content:""; position:absolute; inset:0; border-radius:18px; padding:1px; pointer-events:none; opacity:0; transition:opacity .3s;
     background:linear-gradient(120deg,var(--sev),transparent 40%); -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude}
-  .card:hover{transform:translateY(-3px); background:var(--elev2); border-color:var(--line2)}
+  .card{transform-style:preserve-3d; will-change:transform}
+  .card:hover{background:var(--elev2); border-color:var(--line2)}
   .card:hover::after{opacity:.6}
+  .card .glare{position:absolute; inset:0; border-radius:18px; pointer-events:none; opacity:0; transition:opacity .3s; background:radial-gradient(320px 320px at var(--gx,50%) var(--gy,0%), rgba(255,255,255,.06), transparent 60%)}
+  .card:hover .glare{opacity:1}
   .card.crit{--sev:var(--crit)} .card.high{--sev:var(--high)} .card.med{--sev:var(--med)}
   .top{display:flex; flex-wrap:wrap; align-items:center; gap:10px 13px; margin-bottom:13px}
   .num{font-family:var(--mono); font-size:12px; color:var(--faint)}
@@ -164,6 +182,7 @@
 </head>
 <body>
 
+  <div class="progress" id="progress" aria-hidden="true"></div>
   <div class="amb" id="amb" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
 
@@ -371,10 +390,27 @@ fs.writeFileSync(<span class="st">'evil.ini'</span>, <span class="st">'[s]\nk ='
 (function(){
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-  /* nav stuck + ambient spotlight */
-  var nav=document.getElementById('nav'), amb=document.getElementById('amb');
-  addEventListener('scroll',function(){ nav.classList.toggle('stuck', scrollY>40); },{passive:true});
+  /* nav stuck + scroll progress + ambient spotlight */
+  var nav=document.getElementById('nav'), amb=document.getElementById('amb'), prog=document.getElementById('progress');
+  addEventListener('scroll',function(){
+    nav.classList.toggle('stuck', scrollY>40);
+    var h=document.documentElement.scrollHeight-innerHeight;
+    prog.style.width=(h>0? (scrollY/h*100):0)+'%';
+  },{passive:true});
   addEventListener('pointermove',function(e){ amb.style.setProperty('--mx',e.clientX+'px'); amb.style.setProperty('--my',e.clientY+'px'); },{passive:true});
+
+  /* card 3D tilt + glare (skip on touch / reduced motion) */
+  if(!reduce && !matchMedia('(pointer:coarse)').matches){
+    document.querySelectorAll('.card').forEach(function(card){
+      var g=document.createElement('div'); g.className='glare'; card.appendChild(g);
+      card.addEventListener('pointermove',function(e){
+        var r=card.getBoundingClientRect(), px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+        card.style.transform='perspective(900px) rotateX('+((0.5-py)*3.2).toFixed(2)+'deg) rotateY('+((px-0.5)*3.6).toFixed(2)+'deg) translateY(-3px)';
+        card.style.setProperty('--gx',(px*100)+'%'); card.style.setProperty('--gy',(py*100)+'%');
+      });
+      card.addEventListener('pointerleave',function(){ card.style.transform=''; });
+    });
+  }
 
   /* ---------- particle name ---------- */
   var cv=document.getElementById('stage'), ctx=cv.getContext('2d');
@@ -402,14 +438,18 @@ fs.writeFileSync(<span class="st">'evil.ini'</span>, <span class="st">'[s]\nk ='
     for(var y=0;y<H;y+=step){ for(var x=0;x<W;x+=step){ if(img[(y*W+x)*4+3]>128) targets.push([x,y]); } }
     // reconcile particle array with targets
     ps=targets.map(function(t){
-      return { x:Math.random()*W, y:Math.random()*H, vx:0, vy:0, tx:t[0], ty:t[1], c:mix(C1,C2, t[0]/W) };
+      return { x:Math.random()*W, y:Math.random()*H, vx:0, vy:0, tx:t[0], ty:t[1], ph:Math.random()*6.283, c:mix(C1,C2, t[0]/W) };
     });
   }
+  var T=0;
   function frame(){
     ctx.clearRect(0,0,W,H);
+    T+=0.02;
     for(var i=0;i<ps.length;i++){
       var p=ps[i];
-      var dx=p.tx-p.x, dy=p.ty-p.y;
+      // gentle idle "breathing" so the word stays alive
+      var ox=Math.sin(T+p.ph)*1.25, oy=Math.cos(T*0.9+p.ph)*1.25;
+      var dx=(p.tx+ox)-p.x, dy=(p.ty+oy)-p.y;
       p.vx=(p.vx+dx*0.026)*0.86; p.vy=(p.vy+dy*0.026)*0.86;
       // cursor repel
       var mx=p.x-mouse.x, my=p.y-mouse.y, md=mx*mx+my*my, R=mouse.r;
